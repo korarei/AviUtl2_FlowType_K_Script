@@ -1,0 +1,2 @@
+# AviUtl2_FlowType_K_Script
+AviUtl ExEdit2向けテキストアニメーション作成支援ツール
