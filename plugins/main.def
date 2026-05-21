@@ -1,0 +1,6 @@
+EXPORTS
+    InitializeLogger
+    RequiredVersion
+    InitializePlugin
+    GetCommonPluginTable
+    RegisterPlugin

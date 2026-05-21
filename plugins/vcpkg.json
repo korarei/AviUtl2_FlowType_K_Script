@@ -1,0 +1,9 @@
+{
+    "dependencies": [
+        "eigen3",
+        "harfbuzz",
+        "re2",
+        "tomlplusplus",
+        "utfcpp"
+    ]
+}

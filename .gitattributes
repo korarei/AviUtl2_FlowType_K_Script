@@ -1,0 +1,17 @@
+* text eol=lf
+
+*.obj text eol=crlf linguist-language=Lua working-tree-encoding=cp932
+*.anm text eol=crlf linguist-language=Lua working-tree-encoding=cp932
+*.scn text eol=crlf linguist-language=Lua working-tree-encoding=cp932
+*.cam text eol=crlf linguist-language=Lua working-tree-encoding=cp932
+*.tra text eol=crlf linguist-language=Lua working-tree-encoding=cp932
+
+*.obj2 text eol=crlf linguist-language=Lua working-tree-encoding=utf-8
+*.anm2 text eol=crlf linguist-language=Lua working-tree-encoding=utf-8
+*.scn2 text eol=crlf linguist-language=Lua working-tree-encoding=utf-8
+*.cam2 text eol=crlf linguist-language=Lua working-tree-encoding=utf-8
+*.tra2 text eol=crlf linguist-language=Lua working-tree-encoding=utf-8
+
+*.jpg binary
+*.png binary
+*.gif binary

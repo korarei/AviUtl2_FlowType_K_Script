@@ -1,0 +1,7 @@
+**/.vscode/
+**/.cache/
+**/.venv/
+**/vcpkg/
+**/build/
+**/release/
+**/compile_commands.json

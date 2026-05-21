@@ -1,0 +1,95 @@
+[astra]
+requires-astra = ">=0.6.3"
+
+[project]
+name = "FlowType_K"
+version = "0.1.0"
+author = "Korarei"
+requires-aviutl2 = "2004500"
+
+[build]
+[[build.plugins]]
+id = "core"
+shell = "pwsh"
+variables = { SOURCE = "./plugins" }
+
+[build.plugins.release]
+commands = '''
+$dst = "$env:BUILD_DIRECTORY/Release"
+cmake -S "$env:SOURCE" -B "$dst" --preset release -DVERSION="$env:PROJECT_VERSION"
+cp "$dst/compile_commands.json" "$env:SOURCE"
+cmake --build "$dst"
+'''
+artifacts = ["${BUILD_DIRECTORY}/Release/*.aux2"]
+
+[build.plugins.debug]
+commands = '''
+$dst = "$env:BUILD_DIRECTORY/Debug"
+cmake -S "$env:SOURCE" -B "$dst" --preset debug
+cp "$dst/compile_commands.json" "$env:SOURCE"
+cmake --build "$dst"
+'''
+artifacts = ["${BUILD_DIRECTORY}/Debug/*.aux2"]
+
+[[build.scripts]]
+id = "typography"
+prefix = "@"
+suffix = ".anm2"
+variables = { SOURCE = "./scripts/typography", LABEL = "Text" }
+include-directories = ["${SOURCE}/shaders"]
+sources = [
+    { file = "${SOURCE}/motion.lua" },
+    { file = "${SOURCE}/island.lua" },
+    { file = "${SOURCE}/kerning.lua" },
+    { file = "${SOURCE}/trim.lua" },
+    { file = "${SOURCE}/deform.lua" },
+    { file = "${SOURCE}/align.lua" },
+    { file = "${SOURCE}/transform.lua" },
+    { file = "${SOURCE}/blink.lua" },
+    { file = "${SOURCE}/echo.lua" },
+]
+
+[release]
+[release.package]
+information = "${PROJECT_NAME} v${PROJECT_VERSION} by ${PROJECT_AUTHOR}"
+license = "MIT"
+website = "https://github.com/korarei/AviUtl2_FlowType_K_Script"
+report-issue = "https://github.com/korarei/AviUtl2_FlowType_K_Script/issues"
+summary = "AviUtl ExEdit2向けテキストアニメーション作成支援ツール"
+description = """
+以下の機能が追加される
+
+アニメーション効果
+
+- Text\\Motion@FlowType_K: 全自動リリックモーション
+- Text\\Island@FlowType_K: パーツ分解
+- Text\\Kerning@FlowType_K: 全自動カーニング
+- Text\\Trim@FlowType_K: 余白除去
+- Text\\Deform@FlowType_K: 変形
+- Text\\Align@FlowType_K: 整列
+- Text\\Transform@FlowType_K: 座標変換
+- Text\\Blink@FlowType_K: 点滅
+- Text\\Echo@FlowType_K: 残像
+
+オブジェクトメニュー (オブジェクトを右クリック)
+
+- FlowType_K\\テキストを文字ごとに分解: テキスト分解
+
+プロパティメニュー (オブジェクト設定項目を右クリック)
+
+- FlowType_K\\これ以降の区間へ値を反映: 現在値を以降の区間にコピー
+- FlowType_K\\これ以前の区間へ値を反映: 現在値を以前の区間にコピー
+- FlowType_K\\すべての区間の値を反転: すべての値を反転 (符号，ON/Off)
+"""
+
+[[release.contents.extensions]]
+directory = "Plugin/${PROJECT_NAME}"
+files = ["plugin:core"]
+
+[[release.contents.extensions]]
+directory = "Script/${PROJECT_NAME}"
+files = ["script:typography"]
+
+[[release.contents.documents]]
+directory = "Script/${PROJECT_NAME}"
+files = ["./*.md", "./LICENSE"]
