@@ -21,8 +21,6 @@ public:
 
     class LockedEntry {
     public:
-        std::unique_lock<std::mutex> lock;
-
         explicit LockedEntry(std::shared_ptr<Entry> e) : entry(std::move(e)), lock(entry->mtx) {}
 
         T *operator->() const noexcept { return &entry->cache; }
@@ -30,6 +28,7 @@ public:
 
     private:
         std::shared_ptr<Entry> entry;
+        std::unique_lock<std::mutex> lock;
     };
 
     [[nodiscard]] LockedEntry fetch(int64_t id, const Name &name) {
