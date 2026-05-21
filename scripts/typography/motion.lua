@@ -74,7 +74,7 @@ local tint_source = 0 --select@tint_source:Tint::Source,Image=0,Layer=1
 local tint_image = "" --file@tint_image:Tint::Image,""
 local tint_layer = 0 --track@tint_layer:Tint::Layer,-100,100,0,1,---
 --group:Effect,false
-local effect_params = "" --text@effect_params:Effect::Parameters,""
+local effect_params = "" --text@effect_params:Effect::Parameters,
 --group:Echo,false
 local echo_interval = 0.0 --track@echo_interval:Echo::Interval,-100,100,-1,0.001
 local echo_count = 1 --track@echo_count:Echo::Count,1,100,1,1
