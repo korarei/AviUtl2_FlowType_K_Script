@@ -72,18 +72,18 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール
   - Lyric::Distance: 要素を配置する距離を指定
   - Lyric::Stretch: 要素の拡縮具合を指定
   - Lyric::Jitter: 位置や拡縮のばらつき (ジッター) を指定
-  - Lyric::Shape: 配置形状を指定
+  - Lyric::Layout::Shape: 配置形状を指定
     - Circle: 円形
     - Arc: 弧状
-  - Lyric::Angle: 配置の開始角度を指定
-  - Lyric::Sweep: 配置の範囲・スイープ角を指定
-  - Lyric::Divisions: 配置の分割数を指定
-  - Lyric::Selection: 要素の配置方向を指定
+  - Lyric::Layout::Angle: 配置の開始角度を指定
+  - Lyric::Layout::Sweep: 配置の範囲・スイープ角を指定
+  - Lyric::Layout::Divisions: 配置の分割数を指定
+  - Lyric::Layout::Selection: 要素の配置方向を指定
     - Random: ランダム
     - Clockwise: 時計回り
     - Counter-Clockwise: 反時計回り
-  - Lyric::Peak: 要素のピーク時のスケールを指定
-  - Lyric::Overshoot: スケールのオーバーシュート表現を有効にするか指定
+  - Lyric::Dynamics::Peak: 要素のピーク時のスケールを指定
+  - Lyric::Dynamics::Overshoot: スケールのオーバーシュート表現を有効にするか指定
 
   </details>
 
@@ -265,6 +265,8 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール
 初期ラベル: `Text`
 
 正規表現等を用いて特定の文字ペアや文字列のカーニング・変形・色付けを行うスクリプト．
+
+正規表現の構文は[こちら](https://github.com/google/re2/wiki/Syntax)
 
 #### パラメータ
 
