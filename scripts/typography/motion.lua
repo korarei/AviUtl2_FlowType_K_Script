@@ -20,20 +20,20 @@ local lyric_distance = 0.0 --track@lyric_distance:Lyric::Distance,0,10000,0,0.01
 local lyric_stretch = 0.0 --track@lyric_stretch:Lyric::Stretch,-10,10,0,0.001
 local lyric_jitter = 50.0 --track@lyric_jitter:Lyric::Jitter,0,100,50,0.01
 --separator:Layout
-local lyric_shape = 0 --select@lyric_shape:Lyric::Shape,Circle=0,Arc=1
-local lyric_angle = 0.0 --track@lyric_angle:Lyric::Angle,-3600,3600,0,0.01
-local lyric_sweep = 270.0 --track@lyric_sweep:Lyric::Sweep,-3600,3600,270,0.01
-local lyric_divisions = 4 --track@lyric_divisions:Lyric::Divisions,1,36,4,1
-local lyric_selection = 0 --select@lyric_selection:Lyric::Selection,Random=0,Clockwise=1,Counter-Clockwise=2
+local lyric_shape = 0 --select@lyric_shape:Lyric::Layout::Shape,Circle=0,Arc=1
+local lyric_angle = 0.0 --track@lyric_angle:Lyric::Layout::Angle,-3600,3600,0,0.01
+local lyric_sweep = 270.0 --track@lyric_sweep:Lyric::Layout::Sweep,-3600,3600,270,0.01
+local lyric_divisions = 4 --track@lyric_divisions:Lyric::Layout::Divisions,1,36,4,1
+local lyric_selection = 0 --select@lyric_selection:Lyric::Layout::Selection,Random=0,Clockwise=1,Counter-Clockwise=2
 --separator:Dynamics
-local lyric_peak = 1.0 --track@lyric_peak:Lyric::Peak,0,100,1,0.001
-local lyric_should_overshoot = false --checksection@lyric_should_overshoot:Lyric::Overshoot,false
+local lyric_peak = 1.0 --track@lyric_peak:Lyric::Dynamics::Peak,0,100,1,0.001
+local lyric_should_overshoot = false --checksection@lyric_should_overshoot:Lyric::Dynamics::Overshoot,false
 --group:Transform,false
 --separator:Pivot Point
 local xform_pivot_x = 0.0 --track@xform_pivot_x:Transform::Pivot::X,-100000,100000,0,0.01
 local xform_pivot_y = 0.0 --track@xform_pivot_y:Transform::Pivot::Y,-100000,100000,0,0.01
 local xform_pivot_z = 0.0 --track@xform_pivot_z:Transform::Pivot::Z,-100000,100000,0,0.01
---trackgroup@xform_pivot_x,xform_pivot_y,xform_pivot_z:Group::Transform::Pivot Point
+--trackgroup@xform_pivot_x,xform_pivot_y,xform_pivot_z:Group::Transform::Pivot
 --separator:Position
 local xform_position_x = 0.0 --track@xform_position_x:Transform::Position::X,-100000,100000,0,0.01
 local xform_position_y = 0.0 --track@xform_position_y:Transform::Position::Y,-100000,100000,0,0.01

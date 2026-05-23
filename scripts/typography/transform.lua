@@ -8,7 +8,7 @@
 local pivot_x = 0.0 --track@pivot_x:Pivot::X,-100000,100000,0,0.01
 local pivot_y = 0.0 --track@pivot_y:Pivot::Y,-100000,100000,0,0.01
 local pivot_z = 0.0 --track@pivot_z:Pivot::Z,-100000,100000,0,0.01
---trackgroup@pivot_x,pivot_y,pivot_z:Group::Pivot Point
+--trackgroup@pivot_x,pivot_y,pivot_z:Group::Pivot
 --group:Position,true
 local position_x = 0.0 --track@position_x:Position::X,-100000,100000,0,0.01
 local position_y = 0.0 --track@position_y:Position::Y,-100000,100000,0,0.01
