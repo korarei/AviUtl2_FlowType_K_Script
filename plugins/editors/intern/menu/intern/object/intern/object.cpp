@@ -1,4 +1,4 @@
-#include "object.hpp"
+#include "../object.hpp"
 
 #include "text.hpp"
 

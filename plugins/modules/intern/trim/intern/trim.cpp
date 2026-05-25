@@ -1,4 +1,4 @@
-#include "trim.hpp"
+#include "../trim.hpp"
 
 #include <execution>
 #include <numeric>

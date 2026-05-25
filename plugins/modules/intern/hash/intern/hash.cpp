@@ -1,4 +1,4 @@
-#include "hash.hpp"
+#include "../hash.hpp"
 
 #include <algorithm>
 #include <cmath>

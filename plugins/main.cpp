@@ -3,9 +3,9 @@
 #include <logger2.h>
 #include <plugin2.h>
 
-#include <editor.hpp>
-#include <font.hpp>
-#include <module.hpp>
+#include "editors/editor.hpp"
+#include "intern/font/font.hpp"
+#include "modules/module.hpp"
 
 #ifndef VERSION
 #define VERSION L"0.1.0"

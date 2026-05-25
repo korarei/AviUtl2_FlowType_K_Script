@@ -15,7 +15,7 @@ add_library(${PROJECT_NAME} STATIC
 # Include directories.
 target_include_directories(${PROJECT_NAME}
     PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_SOURCE_DIR}"
 )
 
 # Link libraries.
@@ -27,7 +27,6 @@ target_link_libraries(${PROJECT_NAME}
         re2::re2
         utf8cpp::utf8cpp
         Font
-        Utilities
 )
 
 # C++ version specification.

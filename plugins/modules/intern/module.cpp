@@ -1,12 +1,12 @@
-#include "module.hpp"
+#include "../module.hpp"
 
-#include <hash.hpp>
-#include <island.hpp>
-#include <kerning.hpp>
-#include <regex.hpp>
-#include <toml.hpp>
-#include <trim.hpp>
-#include <vector.hpp>
+#include "hash/hash.hpp"
+#include "island/island.hpp"
+#include "text/kerning.hpp"
+#include "text/regex.hpp"
+#include "toml/toml.hpp"
+#include "trim/trim.hpp"
+#include "vector/vector.hpp"
 
 namespace flow::modules {
 void

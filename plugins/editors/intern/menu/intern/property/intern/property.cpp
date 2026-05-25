@@ -1,9 +1,9 @@
-#include "property.hpp"
+#include "../property.hpp"
 
 #include <ranges>
 #include <string_view>
 
-#include <utilities.hpp>
+#include <intern/utilities.hpp>
 
 namespace {
 namespace string = flow::string;

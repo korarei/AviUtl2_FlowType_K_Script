@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25.0)
+cmake_minimum_required(VERSION 3.20.0)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Properties.
@@ -22,11 +22,6 @@ endif()
 add_library(AviUtl2SDK INTERFACE)
 target_include_directories(AviUtl2SDK INTERFACE
     "${CMAKE_CURRENT_SOURCE_DIR}/extern/aviutl2_sdk/include/aviutl2_sdk"
-)
-
-add_library(Utilities INTERFACE)
-target_include_directories(Utilities INTERFACE
-    "${CMAKE_CURRENT_SOURCE_DIR}/intern"
 )
 
 # Compiler Dependent Options.

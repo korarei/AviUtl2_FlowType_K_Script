@@ -1,4 +1,4 @@
-#include "regex.hpp"
+#include "../regex.hpp"
 
 #include <cstdint>
 #include <optional>
@@ -10,8 +10,8 @@
 
 #include <module2.h>
 
-#include <cache.hpp>
-#include <utilities.hpp>
+#include <intern/cache.hpp>
+#include <intern/utilities.hpp>
 
 namespace {
 namespace string = flow::string;

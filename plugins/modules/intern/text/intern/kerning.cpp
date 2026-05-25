@@ -1,4 +1,4 @@
-#include "kerning.hpp"
+#include "../kerning.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -10,8 +10,8 @@
 
 #include <module2.h>
 
-#include <font.hpp>
-#include <utilities.hpp>
+#include <intern/font/font.hpp>
+#include <intern/utilities.hpp>
 
 namespace {
 namespace string = flow::string;

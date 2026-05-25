@@ -1,4 +1,4 @@
-#include "toml.hpp"
+#include "../toml.hpp"
 
 #include <string>
 #include <vector>
@@ -7,7 +7,7 @@
 
 #include <module2.h>
 
-#include <utilities.hpp>
+#include <intern/utilities.hpp>
 
 namespace {
 namespace string = flow::string;

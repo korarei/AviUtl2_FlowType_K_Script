@@ -1,7 +1,7 @@
-#include "menu.hpp"
+#include "../menu.hpp"
 
-#include <object.hpp>
-#include <property.hpp>
+#include "object/object.hpp"
+#include "property/property.hpp"
 
 namespace flow::editors::menu {
 void

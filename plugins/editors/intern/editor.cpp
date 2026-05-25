@@ -1,6 +1,6 @@
-#include "editor.hpp"
+#include "../editor.hpp"
 
-#include <menu.hpp>
+#include "menu/menu.hpp"
 
 namespace {
 constinit LOG_HANDLE *logger = nullptr;

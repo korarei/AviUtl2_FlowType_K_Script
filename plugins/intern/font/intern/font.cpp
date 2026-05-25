@@ -1,8 +1,8 @@
-#include "font.hpp"
+#include "../font.hpp"
 
 #include <stdexcept>
 
-#include <utilities.hpp>
+#include <intern/utilities.hpp>
 
 namespace flow::font {
 IDWriteFactory3 *

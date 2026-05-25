@@ -11,8 +11,8 @@
 #include <utf8.h>
 #include <Eigen/Dense>
 
-#include <font.hpp>
-#include <utilities.hpp>
+#include <intern/font/font.hpp>
+#include <intern/utilities.hpp>
 
 namespace {
 namespace string = flow::string;
