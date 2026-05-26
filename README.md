@@ -11,10 +11,10 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール
 
 ## 動作確認
 
-- [AviUtl ExEdit2 beta46](https://spring-fragrance.mints.ne.jp/aviutl/)
+- [AviUtl ExEdit2 beta47](https://spring-fragrance.mints.ne.jp/aviutl/)
 
 > [!CAUTION]
-> beta45以降必須．
+> beta47以降必須．
 
 ## 導入・更新・削除
 
@@ -548,11 +548,15 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール
 
 ### プロパティメニュー
 
-#### FlowType_K\\これ以降の区間へ値を反映
+#### FlowType_K\\すべての区間へ値をコピー
+
+現在区間の値をすべての区間の値へコピーする．
+
+#### FlowType_K\\これ以降の区間へ値をコピー
 
 現在区間の値を以降の区間の値へコピーする．
 
-#### FlowType_K\\これ以前の区間へ値を反映
+#### FlowType_K\\これ以前の区間へ値をコピー
 
 現在区間の値を以前の区間の値へコピーする．
 
@@ -564,7 +568,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール
 
 [リリース用ワークフロー](./.github/workflows/releaser.yml)を参照されたい．
 
-[extern](./plugins/extern/)内`vcpkg`ディレクトリに`vcpkg`本体を配置する必要がある．
+[extern](./plugins/extern/)内`vcpkg`ディレクトリに[vcpkg](https://github.com/microsoft/vcpkg)本体を配置する必要がある．
 
 ## ライセンス
 

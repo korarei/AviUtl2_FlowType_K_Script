@@ -5,7 +5,7 @@ requires-astra = ">=0.6.3"
 name = "FlowType_K"
 version = "0.1.0"
 author = "Korarei"
-requires-aviutl2 = "2004500"
+requires-aviutl2 = "2004700"
 
 [build]
 [[build.plugins]]
@@ -16,7 +16,7 @@ variables = { SOURCE = "./plugins" }
 [build.plugins.release]
 commands = '''
 $dst = "$env:BUILD_DIRECTORY/Release"
-cmake -S "$env:SOURCE" -B "$dst" --preset release -DVERSION="$env:PROJECT_VERSION"
+cmake -S "$env:SOURCE" -B "$dst" --preset release -DREQUIRES_AVIUTL2="$env:PROJECT_REQUIRES_AVIUTL2" -DVERSION="$env:PROJECT_VERSION"
 cp "$dst/compile_commands.json" "$env:SOURCE"
 cmake --build "$dst"
 '''
@@ -25,7 +25,7 @@ artifacts = ["${BUILD_DIRECTORY}/Release/*.aux2"]
 [build.plugins.debug]
 commands = '''
 $dst = "$env:BUILD_DIRECTORY/Debug"
-cmake -S "$env:SOURCE" -B "$dst" --preset debug
+cmake -S "$env:SOURCE" -B "$dst" --preset debug -DREQUIRES_AVIUTL2="$env:PROJECT_REQUIRES_AVIUTL2"
 cp "$dst/compile_commands.json" "$env:SOURCE"
 cmake --build "$dst"
 '''
@@ -77,8 +77,9 @@ description = """
 
 プロパティメニュー (オブジェクト設定項目を右クリック)
 
-- FlowType_K\\これ以降の区間へ値を反映: 現在値を以降の区間にコピー
-- FlowType_K\\これ以前の区間へ値を反映: 現在値を以前の区間にコピー
+- FlowType_K\\すべての区間へ値をコピー: 現在値をすべての区間にコピー
+- FlowType_K\\これ以降の区間へ値をコピー: 現在値を以降の区間にコピー
+- FlowType_K\\これ以前の区間へ値をコピー: 現在値を以前の区間にコピー
 - FlowType_K\\すべての区間の値を反転: すべての値を反転 (符号，ON/Off)
 """
 
