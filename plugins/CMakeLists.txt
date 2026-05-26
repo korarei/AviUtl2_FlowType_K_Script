@@ -3,6 +3,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Properties.
 set(VERSION "0.1.0" CACHE STRING "Project version")
+set(REQUIRES_AVIUTL2 "2000100" CACHE STRING "Required AviUtl2 version")
 
 project(FlowType_K VERSION ${VERSION} LANGUAGES CXX)
 
@@ -64,6 +65,7 @@ add_compile_definitions(
     WIN32_LEAN_AND_MEAN
     EIGEN_MPL2_ONLY
     VERSION=L"${PROJECT_VERSION}"
+    REQUIRES_AVIUTL2=${REQUIRES_AVIUTL2}u
 )
 
 # Subdirectories.

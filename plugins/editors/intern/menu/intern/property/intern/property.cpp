@@ -22,7 +22,41 @@ remove_suffix(std::wstring_view s) {
 }
 
 void
-propagate_value_forward(EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+copy_value(EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+    const auto n = edit->get_object_section_num(handle);
+    const auto i = edit->get_focus_object_section();
+    const auto props = string::as_string_view(edit->get_object_item_value(handle, fx, prop));
+
+    if (props.empty())
+        return;
+
+    auto values = props | std::views::split(',');
+    auto remaining = values | std::views::drop(1);
+
+    if (remaining.begin() == remaining.end())
+        return;
+
+    // 中間点無視の場合はスキップ
+    double dummy;
+    if (!string::to_number(std::string_view(*(values | std::views::drop(2)).begin()), dummy))
+        return;
+
+    const std::string_view src(*(values | std::views::drop(i)).begin());
+
+    const auto result = std::ranges::to<std::string>(
+            values | std::views::enumerate | std::views::transform([=](auto &&pair) -> std::string_view {
+                const auto [j, v] = pair;
+                // トラックバー: [0, n]
+                // チェックボックス: [0, n - 1] (これ以降の要素がないのでトラックバーと同一で可)
+                return j <= n ? src : std::string_view(v);
+            })
+            | std::views::join_with(','));
+
+    edit->set_object_item_value(handle, fx, prop, result.c_str());
+}
+
+void
+copy_value_forward(EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
     const auto n = edit->get_object_section_num(handle);
     const auto i = edit->get_focus_object_section();
     const auto props = string::as_string_view(edit->get_object_item_value(handle, fx, prop));
@@ -56,7 +90,7 @@ propagate_value_forward(EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar_t 
 }
 
 void
-propagate_value_backward(EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+copy_value_backward(EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
     const auto i = edit->get_focus_object_section();
     const auto props = string::as_string_view(edit->get_object_item_value(handle, fx, prop));
 
@@ -169,8 +203,9 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
     editor = host->create_edit_handle();
 
-    host->register_object_item_menu(L"FlowType_K\\これ以降の区間へ値を反映", false, propagate_value_forward);
-    host->register_object_item_menu(L"FlowType_K\\これ以前の区間へ値を反映", false, propagate_value_backward);
+    host->register_object_item_menu(L"FlowType_K\\すべての区間へ値をコピー", false, copy_value);
+    host->register_object_item_menu(L"FlowType_K\\これ以降の区間へ値をコピー", false, copy_value_forward);
+    host->register_object_item_menu(L"FlowType_K\\これ以前の区間へ値をコピー", false, copy_value_backward);
     host->register_object_item_menu_param(L"FlowType_K\\すべての区間の値を反転", false, nullptr, invert_values);
 }
 }  // namespace flow::editors::menu::property

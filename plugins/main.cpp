@@ -11,9 +11,11 @@
 #define VERSION L"0.1.0"
 #endif
 
-namespace {
-using namespace flow;
+#ifndef REQUIRES_AVIUTL2
+#define REQUIRES_AVIUTL2 2000100u
+#endif
 
+namespace {
 constinit LOG_HANDLE *logger = nullptr;
 
 constinit COMMON_PLUGIN_TABLE info = {
@@ -29,7 +31,7 @@ InitializeLogger(LOG_HANDLE *handle) {
 }
 
 DWORD
-RequiredVersion() { return 2004500u; }
+RequiredVersion() { return REQUIRES_AVIUTL2; }
 
 bool
 InitializePlugin(DWORD version) {
