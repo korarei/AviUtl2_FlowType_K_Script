@@ -91,6 +91,10 @@ files = ["plugin:core"]
 directory = "Script/${PROJECT_NAME}"
 files = ["script:typography"]
 
+[[release.contents.extensions]]
+directory = "Preset/"
+files = ["./presets/*.preset"]
+
 [[release.contents.documents]]
 directory = "Script/${PROJECT_NAME}"
 files = ["./*.md", "./LICENSE"]
