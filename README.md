@@ -3,11 +3,35 @@
 ![GitHub License](https://img.shields.io/github/license/korarei/AviUtl2_FlowType_K_Script)
 ![GitHub Last commit](https://img.shields.io/github/last-commit/korarei/AviUtl2_FlowType_K_Script)
 ![GitHub Downloads](https://img.shields.io/github/downloads/korarei/AviUtl2_FlowType_K_Script/total)
-![GitHub Release](https://img.shields.io/github/v/release/korarei/AviUtl2_FlowType_K_Script)
+[![GitHub Release][releases-badge]][releases-url]
+[![AviUtl2 Catalog][catalog-badge]][catalog-url]
 
-AviUtl ExEdit2向けテキストアニメーション作成支援ツール
+AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
-[ダウンロードはこちらから](https://github.com/korarei/AviUtl2_FlowType_K_Script/releases)
+以下の機能が追加される．
+
+アニメーション効果
+
+- Text\\Motion@FlowType_K: 全自動リリックモーション
+- Text\\Island@FlowType_K: パーツ分解
+- Text\\Kerning@FlowType_K: 全自動カーニング
+- Text\\Trim@FlowType_K: 余白除去
+- Text\\Deform@FlowType_K: 変形
+- Text\\Align@FlowType_K: 整列
+- Text\\Transform@FlowType_K: 座標変換
+- Text\\Blink@FlowType_K: 点滅
+- Text\\Echo@FlowType_K: 残像
+
+オブジェクトメニュー (オブジェクトを右クリック)
+
+- FlowType_K\\テキストを文字ごとに分解: テキスト分解
+
+プロパティメニュー (オブジェクト設定項目を右クリック)
+
+- FlowType_K\\すべての区間へ値をコピー: 現在値をすべての区間にコピー
+- FlowType_K\\これ以降の区間へ値をコピー: 現在値を以降の区間にコピー
+- FlowType_K\\これ以前の区間へ値をコピー: 現在値を以前の区間にコピー
+- FlowType_K\\すべての区間の値を反転: すべての値を反転 (符号，ON/Off)
 
 ## 動作確認
 
@@ -18,13 +42,19 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール
 
 ## 導入・更新・削除
 
-### 導入・更新
+### パッケージファイルからインストール
 
-ダウンロードした`*.au2pkg.zip`をAviUtl2にD&D．
+#### 導入・更新
 
-### 削除
+[こちら][releases-url]からダウンロードした `*.au2pkg.zip` をAviUtl2にD&D．
+
+#### 削除
 
 パッケージ情報からアンインストールする．
+
+### [AviUtl2 カタログ](https://github.com/Neosku/aviutl2-catalog)からインストール
+
+[こちら][catalog-url]から導入，更新，削除を行う．
 
 ## 使い方
 
@@ -568,14 +598,21 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール
 
 [リリース用ワークフロー](./.github/workflows/releaser.yml)を参照されたい．
 
-[extern](./plugins/extern/)内`vcpkg`ディレクトリに[vcpkg](https://github.com/microsoft/vcpkg)本体を配置する必要がある．
+[extern](./plugins/extern/) 内 `vcpkg` ディレクトリに [vcpkg](https://github.com/microsoft/vcpkg) 本体を配置する必要がある．
 
 ## ライセンス
 
-本プログラムのライセンスは[LICENSE](./LICENSE)を参照されたい．
+本プログラムのライセンスは [LICENSE](./LICENSE) を参照されたい．
 
-また，本プログラムが利用するサードパーティ製ライブラリ等のライセンス情報は[THIRD_PARTY_LICENSES](./THIRD_PARTY_LICENSES.md)に記載している．
+また，本プログラムが利用するサードパーティ製ライブラリ等のライセンス情報は [THIRD_PARTY_LICENSES](./THIRD_PARTY_LICENSES.md) に記載している．
 
 ## 更新履歴
 
-[CHANGELOG](./CHANGELOG.md)を参照されたい．
+[CHANGELOG](./CHANGELOG.md) を参照されたい．
+
+<!-- links -->
+
+[releases-url]: https://github.com/korarei/AviUtl2_FlowType_K_Script/releases
+[releases-badge]: https://img.shields.io/github/v/release/korarei/AviUtl2_FlowType_K_Script
+[catalog-url]: https://aviutl2-catalog-badge.sevenc7c.workers.dev/package/korarei.FlowType_K
+[catalog-badge]: https://aviutl2-catalog-badge.sevenc7c.workers.dev/badge/v/korarei.FlowType_K
