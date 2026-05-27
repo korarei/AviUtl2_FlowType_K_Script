@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20.0)
 
-project(Property LANGUAGES CXX)
+project(PropertyMenu LANGUAGES CXX)
 
 # Library definition.
 add_library(${PROJECT_NAME} STATIC

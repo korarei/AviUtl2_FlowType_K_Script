@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20.0)
 
-project(Island LANGUAGES CXX)
+project(IslandModule LANGUAGES CXX)
 
 find_package(Eigen3 CONFIG REQUIRED)
 

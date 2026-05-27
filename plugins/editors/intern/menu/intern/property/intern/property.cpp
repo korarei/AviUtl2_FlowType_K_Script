@@ -84,7 +84,7 @@ set_clipboard_text(const std::wstring &text) {
     return true;
 }
 
-void
+constexpr void
 copy_value(CopyScope scope, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
     constexpr std::array subjects{
             EDIT_HANDLE::EFFECT_ITEM_TYPE_INTEGER,

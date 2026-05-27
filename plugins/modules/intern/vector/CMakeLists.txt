@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20.0)
 
-project(Vector LANGUAGES CXX)
+project(VectorModule LANGUAGES CXX)
 
 find_package(Eigen3 CONFIG REQUIRED)
 
@@ -21,6 +21,7 @@ target_link_libraries(${PROJECT_NAME}
         AviUtl2SDK
     PRIVATE
         Eigen3::Eigen
+        Vector
 )
 
 # C++ version specification.

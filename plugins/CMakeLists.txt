@@ -69,6 +69,7 @@ add_compile_definitions(
 )
 
 # Subdirectories.
+add_subdirectory(intern/vector)
 add_subdirectory(intern/alias)
 add_subdirectory(intern/font)
 add_subdirectory(modules)

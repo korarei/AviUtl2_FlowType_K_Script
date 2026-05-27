@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20.0)
 
-project(Toml LANGUAGES CXX)
+project(TomlModule LANGUAGES CXX)
 
 find_package(tomlplusplus CONFIG REQUIRED)
 

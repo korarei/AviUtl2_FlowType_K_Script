@@ -22,12 +22,12 @@ target_link_libraries(${PROJECT_NAME}
     PUBLIC
         AviUtl2SDK
     PRIVATE
-        Hash
-        Island
-        Text
-        Toml
-        Trim
-        Vector
+        HashModule
+        IslandModule
+        TextModule
+        TomlModule
+        TrimModule
+        VectorModule
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)

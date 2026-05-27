@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20.0)
 
-project(Object LANGUAGES CXX)
+project(ObjectMenu LANGUAGES CXX)
 
 find_package(Eigen3 CONFIG REQUIRED)
 find_package(utf8cpp CONFIG REQUIRED)
