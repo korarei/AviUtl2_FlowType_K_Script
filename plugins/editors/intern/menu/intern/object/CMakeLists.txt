@@ -24,6 +24,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         Eigen3::Eigen
         utf8cpp::utf8cpp
+        Alias
         Font
 )
 

@@ -11,46 +11,20 @@
 #include <utf8.h>
 #include <Eigen/Dense>
 
+#include <intern/alias/alias.hpp>
 #include <intern/font/font.hpp>
 #include <intern/utilities.hpp>
 
 namespace {
 namespace string = flow::string;
+
+using Object = flow::alias::Object;
 using HB_Font = flow::font::HB_Font;
 using HB_Buffer = flow::font::HB_Buffer;
 using FontCache = flow::font::FontCache;
 using ID = flow::font::ID;
 
 constinit LOG_HANDLE *logger = nullptr;
-
-[[nodiscard]] inline constexpr std::string_view
-get_value(std::string_view section, const std::string &key, std::string_view def = "") {
-    const std::string target = "\n" + key + "=";
-    size_t st = section.find(target);
-
-    if (st == std::string_view::npos)
-        return def;
-
-    st += target.length();
-    const size_t ed = section.find_first_of("\r\n", st);
-    if (ed == std::string_view::npos)
-        return section.substr(st);
-
-    return section.substr(st, ed - st);
-}
-
-[[nodiscard]] inline constexpr double
-get_front_value(std::string_view section, const std::string &key, double def = 0.0) {
-    const auto v = get_value(section, key);
-    if (v.empty())
-        return def;
-
-    double result;
-    if (!string::to_number(v.substr(0uz, v.find(',')), result))
-        return def;
-
-    return result;
-}
 
 [[nodiscard]] constexpr std::string
 unescape(std::string_view s) {
@@ -350,27 +324,36 @@ split_text(EDIT_SECTION *edit) {
             "合成モード={}";
 
     const auto handle = edit->get_selected_object(0);
-    const auto alias = string::as_string_view(edit->get_object_alias(handle));
 
-    if (alias.empty())
+    if (handle == nullptr) {
+        logger->error(logger, L"Failed to get the handle of the object");
         return;
+    }
 
-    const auto p0 = alias.find("[Object.0]"), p1 = alias.find("[Object.1]"), p2 = alias.find("[Object.2]");
-    if (p0 == std::string_view::npos || p1 == std::string_view::npos) {
+    const auto alias = edit->get_object_alias(handle);
+
+    if (alias == nullptr) {
+        logger->error(logger, L"Failed to get the alias of the object");
+        return;
+    }
+
+    const Object object(alias);
+    const auto meta = object.get(-1), fx_text = object.get(0), fx_xform = object.get(1);
+
+    if (meta.alias().empty() || fx_text.alias().empty() || fx_xform.alias().empty()) {
         logger->error(logger, L"The alias does not match the expected format");
         return;
     }
 
-    const auto obj = alias.substr(0uz, p0);
-    const auto obj0 = alias.substr(p0, p1 - p0);
-    const auto obj1 = alias.substr(p1, p2 - p1);
-    const auto obj2 = p2 == std::string_view::npos ? "" : alias.substr(p2);
-    if (obj0.find("effect.name=テキスト") == std::string_view::npos) {
+    const size_t p2 = object.alias().find("[Object.2]");
+    const auto remaining = p2 == std::string_view::npos ? "" : object.alias().substr(p2);
+
+    if (fx_text.get("effect.name") != "テキスト") {
         logger->error(logger, L"Text object is not selected");
         return;
     }
 
-    auto text = std::string(get_value(obj0, "テキスト"));
+    auto text = std::string(fx_text.get("テキスト"));
 
     if (text.empty())
         return;
@@ -381,14 +364,14 @@ split_text(EDIT_SECTION *edit) {
     if (text.empty())
         return;
 
-    auto font = std::string(get_value(obj0, "フォント"));
-    const auto size = get_front_value(obj0, "サイズ");
-    if (font.empty() || size < 1.0e-6) {
+    const auto font = std::string(fx_text.get("フォント"));
+    double size = 0.0;
+    if (font.empty() || !string::to_number(fx_text.front("サイズ"), size) || size < 1.0e-6) {
         logger->error(logger, L"Font name is empty or size is zero");
         return;
     }
 
-    const auto align = get_value(obj0, "文字揃え");
+    const auto align = fx_text.get("文字揃え");
 
     std::vector<Eigen::Vector2d> coords;
     try {
@@ -452,16 +435,16 @@ split_text(EDIT_SECTION *edit) {
     edit->set_focus_object(edit->create_object_from_alias(
             std::format(
                     empty_object_alias,
-                    obj,
-                    get_value(obj1, "X", "0.00"),
-                    get_value(obj1, "Y", "0.00"),
-                    get_value(obj1, "Z", "0.00"),
-                    get_value(obj1, "X軸回転", "0.00"),
-                    get_value(obj1, "Y軸回転", "0.00"),
-                    get_value(obj1, "Z軸回転", "0.00"),
-                    get_value(obj1, "拡大率", "100.000"),
+                    meta.alias(),
+                    fx_xform.get("X", "0.00"),
+                    fx_xform.get("Y", "0.00"),
+                    fx_xform.get("Z", "0.00"),
+                    fx_xform.get("X軸回転", "0.00"),
+                    fx_xform.get("Y軸回転", "0.00"),
+                    fx_xform.get("Z軸回転", "0.00"),
+                    fx_xform.get("拡大率", "100.000"),
                     chars.size() + 1uz,
-                    shift_object_indices(obj2))
+                    shift_object_indices(remaining))
                     .c_str(),
             info.layer,
             info.start,
@@ -470,10 +453,10 @@ split_text(EDIT_SECTION *edit) {
     edit->create_object_from_alias(
             std::format(
                     empty_object_alias,
-                    obj,
-                    "-" + std::string(get_value(obj1, "中心X", "0.00")),
-                    "-" + std::string(get_value(obj1, "中心Y", "0.00")),
-                    "-" + std::string(get_value(obj1, "中心Z", "0.00")),
+                    meta.alias(),
+                    "-" + std::string(fx_xform.get("中心X", "0.00")),
+                    "-" + std::string(fx_xform.get("中心Y", "0.00")),
+                    "-" + std::string(fx_xform.get("中心Z", "0.00")),
                     "0.00",
                     "0.00",
                     "0.00",
@@ -489,26 +472,31 @@ split_text(EDIT_SECTION *edit) {
         edit->create_object_from_alias(
                 std::format(
                         text_object_alias,
-                        obj,
+                        meta.alias(),
                         size,
                         font,
-                        get_value(obj0, "文字色"),
-                        get_value(obj0, "影・縁色"),
-                        get_value(obj0, "文字装飾"),
+                        fx_text.get("文字色"),
+                        fx_text.get("影・縁色"),
+                        fx_text.get("文字装飾"),
                         align,
-                        get_value(obj0, "B"),
-                        get_value(obj0, "I"),
+                        fx_text.get("B"),
+                        fx_text.get("I"),
                         chars[i],
                         coords[i].x(),
                         -coords[i].y(),
-                        get_value(obj1, "縦横比", "0.000"),
-                        get_value(obj1, "透明度", "0.00"),
-                        get_value(obj1, "合成モード", "通常"))
+                        fx_xform.get("縦横比", "0.000"),
+                        fx_xform.get("透明度", "0.00"),
+                        fx_xform.get("合成モード", "通常"))
                         .c_str(),
                 info.layer + static_cast<int>(i) + 2,
                 info.start,
                 0);
     }
+
+    logger->info(
+            logger,
+            std::format(L"Converted '{}' into per-character objects", string::to_wstring(string::as_utf8(text)))
+                    .c_str());
 }
 }  // namespace
 

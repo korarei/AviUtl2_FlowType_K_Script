@@ -35,14 +35,14 @@ public:
         {
             std::shared_lock lock(mtx);
             if (auto it = id_to_cache.find(id); it != id_to_cache.end()) {
-                if (auto entry = it->second; entry && entry->name == name)
+                if (auto entry = it->second; entry != nullptr && entry->name == name)
                     return LockedEntry{std::move(entry)};
             }
         }
 
         std::unique_lock lock(mtx);
         if (auto it = id_to_cache.find(id); it != id_to_cache.end()) {
-            if (auto entry = it->second; entry && entry->name == name)
+            if (auto entry = it->second; entry != nullptr && entry->name == name)
                 return LockedEntry{std::move(entry)};
 
             release(id);
@@ -51,11 +51,11 @@ public:
         std::shared_ptr<Entry> entry;
         if (auto it = name_to_cache.find(name); it != name_to_cache.end()) {
             entry = it->second.lock();
-            if (!entry)
+            if (entry == nullptr)
                 name_to_cache.erase(it);
         }
 
-        if (!entry) {
+        if (entry == nullptr) {
             entry = std::make_shared<Entry>(name);
             name_to_cache[name] = entry;
         }
@@ -83,7 +83,7 @@ private:
     constexpr void release(int64_t id) {
         if (auto node = id_to_cache.extract(id)) {
             const auto &entry = node.mapped();
-            if (entry) {
+            if (entry != nullptr) {
                 if (auto it = name_to_cache.find(entry->name); it != name_to_cache.end() && it->second.expired())
                     name_to_cache.erase(it);
             }
@@ -92,7 +92,7 @@ private:
 
     constexpr void release(const Name &name) {
         if (auto node = name_to_cache.extract(name))
-            std::erase_if(id_to_cache, [&](const auto &e) { return e.second && e.second->name == name; });
+            std::erase_if(id_to_cache, [&](const auto &e) { return e.second != nullptr && e.second->name == name; });
     }
 
     std::shared_mutex mtx;
