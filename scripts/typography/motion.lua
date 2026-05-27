@@ -7,7 +7,7 @@
 local timing = 0 --select@timing:Timing,Automatic=0,Manual=1
 local duration = 24.0 --track@duration:Duration,-1000,1000,24,0.001,---
 --group:Motion
---#define BASED_ON Whole=-1,Characters=0,Characters Excluding Spaces=1,Words=2,Lines=3
+--#define BASED_ON Whole=-2,Objects=-1,Characters=0,Characters Excluding Spaces=1,Words=2,Lines=3
 local motion_based_on = 0 --select@motion_based_on:Motion::Based On,${BASED_ON}
 local motion_order = 0 --select@motion_order:Motion::Order,Forward=0,Reverse=1,Random=2
 local motion_overlap = 100.0 --track@motion_overlap:Motion::Overlap,0,100,100,0.01
@@ -229,39 +229,31 @@ do
         do
             local regex = obj.module("Regex@${PROJECT_NAME}")
 
-            group = function(mode)
+            group = function(mode, text)
                 local t = {}
-                local text = getvalue("テキスト", "テキスト")
-                if text ~= nil then
-                    text = text:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("<.->", "")
 
-                    local i, id, pattern
-                    if mode == 1 then
-                        i = -1
-                        id = -1
-                        pattern = [=[[^\s\v\x85\pZ]]=]
-                    elseif mode == 2 then
-                        i = 0
-                        id = -2
-                        pattern = [=[[\s\v\x85\pZ]]=]
-                    else
-                        i = 0
-                        id = -3
-                        pattern = "\\n"
-                    end
-
-                    for _, m in ipairs({ regex.search(id, text, pattern) }) do
-                        if m[1] then
-                            i = i + 1
-                        end
-
-                        if not m[2] then
-                            t[#t + 1] = max(i, 0)
-                        end
-                    end
+                local i, id, pattern
+                if mode == 1 then
+                    i = -1
+                    id = -1
+                    pattern = [=[[^\s\v\x85\pZ]]=]
+                elseif mode == 2 then
+                    i = 0
+                    id = -2
+                    pattern = [=[[\s\v\x85\pZ]]=]
                 else
-                    for i = 1, NUM do
-                        t[i] = i - 1
+                    i = 0
+                    id = -3
+                    pattern = "\\n"
+                end
+
+                for _, m in ipairs({ regex.search(id, text, pattern) }) do
+                    if m[1] then
+                        i = i + 1
+                    end
+
+                    if not m[2] then
+                        t[#t + 1] = max(i, 0)
                     end
                 end
 
@@ -571,21 +563,55 @@ do
         end
 
         do
-            local KEY_ORDER = "66d63ef0-5c82-46b4-8989-12fa433c66e9-" .. ID
-            local KEY_GROUP = "a7d6bd98-24a1-480a-bf02-679a2c80c83d-" .. ID
-
             local i, n = INDEX, NUM
 
-            if motion_based_on > 0 and getoption("multi_object") then
+            local text
+
+            if motion_based_on >= 0 then
+                local utf8 = obj.module("UTF8@${PROJECT_NAME}")
+
+                local KEY_COUNT = "58172aa6-e0d5-4503-aa68-984427e8f04f-" .. ID
+
+                text = getvalue("テキスト", "テキスト")
+
+                if text ~= nil then
+                    text = text:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("<.->", "")
+
+                    local c
+                    if INDEX == 0 then
+                        c = utf8.count(text, true)
+                        _G[KEY_COUNT] = c
+                    else
+                        c = _G[KEY_COUNT]
+                    end
+
+                    if type(c) == "number" then
+                        if n % c == 0 then
+                            i = floor(i * c / n)
+                            n = c
+                        end
+                    else
+                        print("@warn", "Shared count value is missing or corrupted")
+                    end
+
+                    if INDEX == NUM - 1 then
+                        _G[KEY_COUNT] = nil
+                    end
+                end
+            end
+
+            if text ~= nil and motion_based_on > 0 and getoption("multi_object") then
+                local KEY_GROUP = "a7d6bd98-24a1-480a-bf02-679a2c80c83d-" .. ID
+
                 local t
                 if INDEX == 0 then
-                    t = group(motion_based_on)
+                    t = group(motion_based_on, text)
                     _G[KEY_GROUP] = t
                 else
                     t = _G[KEY_GROUP]
                 end
 
-                if type(t) == "table" and #t == NUM then
+                if type(t) == "table" and #t == n then
                     i = t[i + 1]
                     n = t[n] + 1
                 else
@@ -595,7 +621,7 @@ do
                 if INDEX == NUM - 1 then
                     _G[KEY_GROUP] = nil
                 end
-            elseif motion_based_on == -1 then
+            elseif motion_based_on == -2 then
                 i = 0
                 n = 1
             end
@@ -603,6 +629,8 @@ do
             if motion_order == 1 then
                 i = n - 1 - i
             elseif motion_order == 2 then
+                local KEY_ORDER = "66d63ef0-5c82-46b4-8989-12fa433c66e9-" .. ID
+
                 local t
                 if INDEX == 0 then
                     t = permute(n)

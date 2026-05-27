@@ -10,6 +10,7 @@ find_package(utf8cpp CONFIG REQUIRED)
 add_library(${PROJECT_NAME} STATIC
     intern/kerning.cpp
     intern/regex.cpp
+    intern/utf8.cpp
 )
 
 # Include directories.

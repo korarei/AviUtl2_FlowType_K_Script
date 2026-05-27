@@ -84,7 +84,8 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
   - Motion::Based On: モーションを適用する単位を指定
     - Whole: 全体
-    - Characters: 文字単位 (個別オブジェクト毎)
+    - Objects: 個別オブジェクト単位
+    - Characters: 文字単位
     - Characters Excluding Spaces: 空白を除いた文字単位
     - Words: 単語単位
     - Lines: 行単位
