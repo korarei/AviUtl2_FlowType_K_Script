@@ -1,5 +1,6 @@
 #include "../deform.hpp"
 
+#include <array>
 #include <cmath>
 #include <cstdint>  // IWYU pragma: keep
 
@@ -87,7 +88,7 @@ deform(FILTER_PROC_VIDEO *video) {
         return false;
     }
 
-    std::vector<VERTEX_TEXTURE> vertices(4);
+    std::array<VERTEX_TEXTURE, 4> vertices{};
     vertices[0] = {verts(0, 0), verts(1, 0), 0.0f, 0.0f, 0.0f, alpha};
     vertices[1] = {verts(0, 1), verts(1, 1), 0.0f, 1.0f, 0.0f, alpha};
     vertices[2] = {verts(0, 2), verts(1, 2), 0.0f, 1.0f, 1.0f, alpha};
