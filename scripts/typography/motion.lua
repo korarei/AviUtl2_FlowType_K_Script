@@ -393,7 +393,7 @@ do
                 local hx, hy, hz, _ = hash4d(i, n, seed)
 
                 local r = lerp(lyric_distance, lyric_distance * hx, lyric_jitter) * w
-                local s = lerp(lyric_stretch, lyric_stretch * hy, lyric_jitter) * w
+                local s = lerp(lyric_stretch, lyric_stretch * hy, lyric_jitter) * abs(w)
 
                 local d = 0.0
                 if lyric_shape == 0 then
