@@ -15,6 +15,7 @@
 - `Align@FlowType_K` のフィルタプラグイン化
 - `Deform@FlowType_K` のフィルタプラグイン化
 - `Transform@FlowType_K` のフィルタプラグイン化
+- プリセットの追加
 
 ## v0.1.0
 
