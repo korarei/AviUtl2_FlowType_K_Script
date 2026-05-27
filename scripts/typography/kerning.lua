@@ -174,9 +174,12 @@ do
             obj.sz = obj.sz * xform_scale_z
         end
 
-        obj.ox = obj.ox + xform_position_x + offset[1]
-        obj.oy = obj.oy + xform_position_y + offset[2]
-        obj.oz = obj.oz + xform_position_z
+        if xform_target_local_space or xform_target_world_space then
+            obj.ox = obj.ox + xform_position_x + offset[1]
+            obj.oy = obj.oy + xform_position_y + offset[2]
+            obj.oz = obj.oz + xform_position_z
+        end
+
         obj.alpha = obj.alpha * xform_opacity
 
         ---@diagnostic disable-next-line: param-type-mismatch

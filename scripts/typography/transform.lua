@@ -76,7 +76,9 @@ do
         obj.sz = lerp(obj.sz, obj.sz * scale_z, influence)
     end
 
-    obj.ox = obj.ox + position_x * influence
-    obj.oy = obj.oy + position_y * influence
-    obj.oz = obj.oz + position_z * influence
+    if target_local_space or target_world_space then
+        obj.ox = obj.ox + position_x * influence
+        obj.oy = obj.oy + position_y * influence
+        obj.oz = obj.oz + position_z * influence
+    end
 end

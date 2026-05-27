@@ -372,9 +372,12 @@ do
                     obj.sz = obj.sz * (xform_scale_z ^ w)
                 end
 
-                obj.ox = obj.ox + xform_position_x * w
-                obj.oy = obj.oy + xform_position_y * w
-                obj.oz = obj.oz + xform_position_z * w
+                if xform_target_local_space or xform_target_world_space then
+                    obj.ox = obj.ox + xform_position_x * w
+                    obj.oy = obj.oy + xform_position_y * w
+                    obj.oz = obj.oz + xform_position_z * w
+                end
+
                 obj.alpha = lerp(obj.alpha, obj.alpha * xform_opacity, abs(w))
             end
         end

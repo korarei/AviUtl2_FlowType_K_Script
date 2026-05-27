@@ -44,7 +44,7 @@ sources = [
     { file = "${SOURCE}/trim.lua" },
     #{ file = "${SOURCE}/deform.lua" },
     { file = "${SOURCE}/align.lua" },
-    { file = "${SOURCE}/transform.lua" },
+    #{ file = "${SOURCE}/transform.lua" },
     { file = "${SOURCE}/blink.lua" },
     { file = "${SOURCE}/echo.lua" },
 ]
