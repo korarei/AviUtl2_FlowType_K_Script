@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20.0)
 
-project(Island LANGUAGES CXX)
+project(IslandModule LANGUAGES CXX)
 
 find_package(Eigen3 CONFIG REQUIRED)
 
@@ -12,7 +12,7 @@ add_library(${PROJECT_NAME} STATIC
 # Include directories.
 target_include_directories(${PROJECT_NAME}
     PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_SOURCE_DIR}"
 )
 
 # Link libraries.
@@ -21,7 +21,6 @@ target_link_libraries(${PROJECT_NAME}
         AviUtl2SDK
     PRIVATE
         Eigen3::Eigen
-        Utilities
 )
 
 # C++ version specification.

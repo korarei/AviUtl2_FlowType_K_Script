@@ -46,6 +46,8 @@ local xform_target_world_space = false --checksection@xform_target_world_space:T
 --group:Tint,false
 local tint_color = nil --color@tint_color:Tint::Color,nil
 local tint_opacity = 100.0 --track@tint_opacity:Tint::Opacity,0,100,100,0.01
+--group:Additional Options,false
+local influence = 100.0 --track@influence:Influence,0,100,100,0.01
 
 if not obj.getoption("multi_object") then
     print("@error", "Enable Multi Object to use this script")
@@ -60,15 +62,14 @@ end
 do
     local _ = obj.setanchor("xform_position_x,xform_position_y,xform_position_z", 0, "line", "xyz")
 
-    local kerning = obj.module("Kerning@${PROJECT_NAME}")
-    local regex = obj.module("Regex@${PROJECT_NAME}")
-    local vector = obj.module("Vector@${PROJECT_NAME}")
-    local rotate = vector.rotate
+    --#include "utilities.lua"
+    local utils = require("utilities")
+    local lerp = utils.lerp
 
-    local ID_REGEX = obj.effect_id
-    local ID_KERNING = obj.id
-    local KEY_REGEX = "db5638b7-59ab-4c53-8471-772fc3b03366-" .. ID_REGEX
-    local KEY_KERNING = "308494ea-bd57-4fbf-9573-458df515646c-" .. ID_KERNING
+    local utf8 = obj.module("UTF8@${PROJECT_NAME}")
+
+    local ID = obj.effect_id
+    local KEY_COUNT = "8973f111-5db5-4890-907d-52539fe55570-" .. ID
 
     local getvalue = obj.getvalue
     local INDEX, NUM = obj.index, obj.num
@@ -78,30 +79,58 @@ do
     xform_scale_z = xform_scale_z * 0.01
     xform_opacity = xform_opacity * 0.01
     tint_opacity = tint_opacity * 0.01
+    influence = influence * 0.01
 
     local text = getvalue("テキスト", "テキスト")
-    if not text then
+    if text == nil then
         print("@error", "'テキスト' effect was not found in the source")
         return
     end
 
     text = text:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("<.->", "")
 
+    local i, n = INDEX, NUM
+
+    local c
+    if INDEX == 0 then
+        c = utf8.count(text, true)
+        _G[KEY_COUNT] = c
+    else
+        c = _G[KEY_COUNT]
+    end
+
+    if type(c) == "number" then
+        if n % c == 0 then
+            i = math.floor(i * c / n)
+            n = c
+        end
+    else
+        print("@warn", "Shared count value is missing or corrupted")
+    end
+
+    if INDEX == NUM - 1 then
+        _G[KEY_COUNT] = nil
+    end
+
     local offset = { 0.0, 0.0 }
     if kerning_mode == 1 then
+        local kerning = obj.module("Kerning@${PROJECT_NAME}")
+
+        local KEY_KERNING = "308494ea-bd57-4fbf-9573-458df515646c-" .. ID
+
         local t
         if INDEX == 0 then
             local size = tonumber(getvalue("テキスト", "サイズ"))
             local font = getvalue("テキスト", "フォント")
             local align = getvalue("テキスト", "文字揃え")
-            t = { kerning.shift(ID_KERNING, text, size, font, align) }
+            t = { kerning.shift(obj.id, text, size, font, align) }
             _G[KEY_KERNING] = t
         else
             t = _G[KEY_KERNING]
         end
 
-        if type(t) == "table" and #t == NUM then
-            offset = t[INDEX + 1]
+        if type(t) == "table" and #t == n then
+            offset = t[i + 1]
         else
             print("@warn", "Shared kerning offset table is missing or corrupted")
         end
@@ -113,9 +142,13 @@ do
 
     local is_matched = true
     if filter_regex_pattern ~= "" then
+        local regex = obj.module("Regex@${PROJECT_NAME}")
+
+        local KEY_REGEX = "db5638b7-59ab-4c53-8471-772fc3b03366-" .. ID
+
         local t = {}
         if INDEX == 0 then
-            for _, m in ipairs({ regex.search(ID_REGEX, text, filter_regex_pattern, filter_capture_group) }) do
+            for _, m in ipairs({ regex.search(ID, text, filter_regex_pattern, filter_capture_group) }) do
                 if not m[2] then
                     t[#t + 1] = m[1]
                 end
@@ -125,8 +158,8 @@ do
             t = _G[KEY_REGEX]
         end
 
-        if type(t) == "table" and #t == NUM then
-            is_matched = t[INDEX + 1]
+        if type(t) == "table" and #t == n then
+            is_matched = t[i + 1]
         else
             print("@warn", "Shared regex filter table is missing or corrupted")
         end
@@ -137,15 +170,18 @@ do
     end
 
     if is_matched then
+        local vector = obj.module("Vector@${PROJECT_NAME}")
+        local rotate = vector.rotate
+
         if xform_target_world_space then
             local v = {
-                (obj.ox - xform_pivot_x) * xform_scale_x,
-                (obj.oy - xform_pivot_y) * xform_scale_y,
-                (obj.oz - xform_pivot_z) * xform_scale_z,
+                (obj.ox - xform_pivot_x * influence) * (1.0 + (xform_scale_x - 1.0) * influence),
+                (obj.oy - xform_pivot_y * influence) * (1.0 + (xform_scale_y - 1.0) * influence),
+                (obj.oz - xform_pivot_z * influence) * (1.0 + (xform_scale_z - 1.0) * influence),
             }
 
             v = rotate(
-                1.0,
+                influence,
                 xform_rotation_mode,
                 xform_rotation_w,
                 xform_rotation_x,
@@ -160,24 +196,33 @@ do
         end
 
         if xform_target_local_space then
-            local rx, ry, rz =
-                rotate(1.0, xform_rotation_mode, xform_rotation_w, xform_rotation_x, xform_rotation_y, xform_rotation_z)
+            local rx, ry, rz = rotate(
+                influence,
+                xform_rotation_mode,
+                xform_rotation_w,
+                xform_rotation_x,
+                xform_rotation_y,
+                xform_rotation_z
+            )
 
-            obj.cx = obj.cx + xform_pivot_x
-            obj.cy = obj.cy + xform_pivot_y
-            obj.cz = obj.cz + xform_pivot_z
+            obj.cx = obj.cx + xform_pivot_x * influence
+            obj.cy = obj.cy + xform_pivot_y * influence
+            obj.cz = obj.cz + xform_pivot_z * influence
             obj.rx = obj.rx + rx
             obj.ry = obj.ry + ry
             obj.rz = obj.rz + rz
-            obj.sx = obj.sx * xform_scale_x
-            obj.sy = obj.sy * xform_scale_y
-            obj.sz = obj.sz * xform_scale_z
+            obj.sx = lerp(obj.sx, obj.sx * xform_scale_x, influence)
+            obj.sy = lerp(obj.sy, obj.sy * xform_scale_y, influence)
+            obj.sz = lerp(obj.sz, obj.sz * xform_scale_z, influence)
         end
 
-        obj.ox = obj.ox + xform_position_x + offset[1]
-        obj.oy = obj.oy + xform_position_y + offset[2]
-        obj.oz = obj.oz + xform_position_z
-        obj.alpha = obj.alpha * xform_opacity
+        if xform_target_local_space or xform_target_world_space then
+            obj.ox = obj.ox + (xform_position_x + offset[1]) * influence
+            obj.oy = obj.oy + (xform_position_y + offset[2]) * influence
+            obj.oz = obj.oz + xform_position_z * influence
+        end
+
+        obj.alpha = lerp(obj.alpha, obj.alpha * xform_opacity, influence)
 
         ---@diagnostic disable-next-line: param-type-mismatch
         obj.setoption("blend", xform_blend_mode)
@@ -188,7 +233,7 @@ do
                 "tint@Motion@${SCRIPT_NAME}",
                 "object",
                 "object",
-                { r / 255.0, g / 255.0, b / 255.0, 1.0, tint_opacity }
+                { r / 255.0, g / 255.0, b / 255.0, 1.0, tint_opacity * influence }
             )
         end
     end

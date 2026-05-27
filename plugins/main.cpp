@@ -3,17 +3,20 @@
 #include <logger2.h>
 #include <plugin2.h>
 
-#include <editor.hpp>
-#include <font.hpp>
-#include <module.hpp>
+#include "editors/editor.hpp"
+#include "filters/filter.hpp"
+#include "intern/font/font.hpp"
+#include "modules/module.hpp"
 
 #ifndef VERSION
 #define VERSION L"0.1.0"
 #endif
 
-namespace {
-using namespace flow;
+#ifndef REQUIRES_AVIUTL2
+#define REQUIRES_AVIUTL2 2000100u
+#endif
 
+namespace {
 constinit LOG_HANDLE *logger = nullptr;
 
 constinit COMMON_PLUGIN_TABLE info = {
@@ -29,7 +32,7 @@ InitializeLogger(LOG_HANDLE *handle) {
 }
 
 DWORD
-RequiredVersion() { return 2004500u; }
+RequiredVersion() { return REQUIRES_AVIUTL2; }
 
 bool
 InitializePlugin(DWORD version) {
@@ -38,7 +41,7 @@ InitializePlugin(DWORD version) {
 
 void
 UninitializePlugin() {
-    flow::modules::deinit();
+    flow::module::deinit();
     flow::font::FontCache::reset();
     flow::font::DWrite::reset();
 }
@@ -50,7 +53,8 @@ GetCommonPluginTable() {
 
 void
 RegisterPlugin(HOST_APP_TABLE *host) {
-    flow::modules::init(host, logger);
-    flow::editors::init(host, logger);
+    flow::filter::init(host, logger);
+    flow::module::init(host, logger);
+    flow::editor::init(host, logger);
 }
 }

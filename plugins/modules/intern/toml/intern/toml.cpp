@@ -1,4 +1,4 @@
-#include "toml.hpp"
+#include "../toml.hpp"
 
 #include <string>
 #include <vector>
@@ -7,7 +7,7 @@
 
 #include <module2.h>
 
-#include <utilities.hpp>
+#include <intern/string.hpp>
 
 namespace {
 namespace string = flow::string;
@@ -93,11 +93,11 @@ constinit SCRIPT_MODULE_TABLE info = {
 };
 }  // namespace
 
-namespace flow::modules::toml {
+namespace flow::module::toml {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
 
     host->register_script_module_name(&info, L"Toml@FlowType_K");
 }
-}  // namespace flow::modules::toml
+}  // namespace flow::module::toml

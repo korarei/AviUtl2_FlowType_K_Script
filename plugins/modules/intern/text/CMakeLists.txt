@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20.0)
 
-project(Text LANGUAGES CXX)
+project(TextModule LANGUAGES CXX)
 
 find_package(Eigen3 CONFIG REQUIRED)
 find_package(re2 CONFIG REQUIRED)
@@ -10,12 +10,13 @@ find_package(utf8cpp CONFIG REQUIRED)
 add_library(${PROJECT_NAME} STATIC
     intern/kerning.cpp
     intern/regex.cpp
+    intern/utf8.cpp
 )
 
 # Include directories.
 target_include_directories(${PROJECT_NAME}
     PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_SOURCE_DIR}"
 )
 
 # Link libraries.
@@ -27,7 +28,6 @@ target_link_libraries(${PROJECT_NAME}
         re2::re2
         utf8cpp::utf8cpp
         Font
-        Utilities
 )
 
 # C++ version specification.

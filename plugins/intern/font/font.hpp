@@ -7,7 +7,7 @@
 
 #include <hb.h>
 
-#include <cache.hpp>
+#include <intern/cache.hpp>
 
 namespace flow::font {
 enum ID : int64_t {

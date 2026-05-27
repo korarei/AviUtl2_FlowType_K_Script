@@ -1,8 +1,9 @@
-cmake_minimum_required(VERSION 3.25.0)
+cmake_minimum_required(VERSION 3.20.0)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Properties.
 set(VERSION "0.1.0" CACHE STRING "Project version")
+set(REQUIRES_AVIUTL2 "2000100" CACHE STRING "Required AviUtl2 version")
 
 project(FlowType_K VERSION ${VERSION} LANGUAGES CXX)
 
@@ -22,11 +23,6 @@ endif()
 add_library(AviUtl2SDK INTERFACE)
 target_include_directories(AviUtl2SDK INTERFACE
     "${CMAKE_CURRENT_SOURCE_DIR}/extern/aviutl2_sdk/include/aviutl2_sdk"
-)
-
-add_library(Utilities INTERFACE)
-target_include_directories(Utilities INTERFACE
-    "${CMAKE_CURRENT_SOURCE_DIR}/intern"
 )
 
 # Compiler Dependent Options.
@@ -69,12 +65,16 @@ add_compile_definitions(
     WIN32_LEAN_AND_MEAN
     EIGEN_MPL2_ONLY
     VERSION=L"${PROJECT_VERSION}"
+    REQUIRES_AVIUTL2=${REQUIRES_AVIUTL2}u
 )
 
 # Subdirectories.
+add_subdirectory(intern/alias)
 add_subdirectory(intern/font)
-add_subdirectory(modules)
+add_subdirectory(intern/vector)
 add_subdirectory(editors)
+add_subdirectory(filters)
+add_subdirectory(modules)
 
 # Main target definition.
 add_library(${PROJECT_NAME} SHARED
@@ -87,6 +87,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         AviUtl2SDK
         Editor
+        Filter
         Font
         Module
 )

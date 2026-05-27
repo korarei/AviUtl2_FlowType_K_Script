@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20.0)
 
-project(Property LANGUAGES CXX)
+project(PropertyMenu LANGUAGES CXX)
 
 # Library definition.
 add_library(${PROJECT_NAME} STATIC
@@ -10,7 +10,7 @@ add_library(${PROJECT_NAME} STATIC
 # Include directories.
 target_include_directories(${PROJECT_NAME}
     PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_SOURCE_DIR}"
 )
 
 # Link libraries.
@@ -18,7 +18,7 @@ target_link_libraries(${PROJECT_NAME}
     PUBLIC
         AviUtl2SDK
     PRIVATE
-        Utilities
+        Alias
 )
 
 # C++ version specification.

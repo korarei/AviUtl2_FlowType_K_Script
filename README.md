@@ -3,28 +3,64 @@
 ![GitHub License](https://img.shields.io/github/license/korarei/AviUtl2_FlowType_K_Script)
 ![GitHub Last commit](https://img.shields.io/github/last-commit/korarei/AviUtl2_FlowType_K_Script)
 ![GitHub Downloads](https://img.shields.io/github/downloads/korarei/AviUtl2_FlowType_K_Script/total)
-![GitHub Release](https://img.shields.io/github/v/release/korarei/AviUtl2_FlowType_K_Script)
+[![GitHub Release][releases-badge]][releases-url]
+[![AviUtl2 Catalog][catalog-badge]][catalog-url]
 
-AviUtl ExEdit2向けテキストアニメーション作成支援ツール
+AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
-[ダウンロードはこちらから](https://github.com/korarei/AviUtl2_FlowType_K_Script/releases)
+以下の機能が追加される．
+
+アニメーション効果
+
+- Text\\Motion@FlowType_K: 全自動リリックモーション
+- Text\\Island@FlowType_K: パーツ分解
+- Text\\Kerning@FlowType_K: 全自動カーニング
+- Text\\Trim@FlowType_K: 余白除去
+- Text\\Deform@FlowType_K: 変形
+- Text\\Align@FlowType_K: 整列
+- Text\\Transform@FlowType_K: 座標変換
+- Text\\Blink@FlowType_K: 点滅
+- Text\\Echo@FlowType_K: 残像
+
+オブジェクトメニュー (オブジェクトを右クリック)
+
+- FlowType_K\\テキストを文字ごとに分解: テキスト分解
+
+プロパティメニュー (オブジェクト設定項目を右クリック)
+
+- FlowType_K\\値を揃える\\全ての区間: 現在値を全ての区間にコピー
+- FlowType_K\\値を揃える\\以前の区間: 現在値を以前の区間にコピー
+- FlowType_K\\値を揃える\\以降の区間: 現在値を以降の区間にコピー
+- FlowType_K\\値を反転\\現在の区間: 現在値を反転 (符号，ON/Off)
+- FlowType_K\\値を反転\\全ての区間: 全ての区間の値を反転 (符号，ON/Off)
+- FlowType_K\\値を反転\\以前の区間: 以前の区間の値を反転 (符号，ON/Off)
+- FlowType_K\\値を反転\\以降の区間: 以降の区間の値を反転 (符号，ON/Off)
+
+- FlowType_K\\エフェクトをコピー\\エイリアス形式 (INI 形式): エフェクトをエイリアス形式でクリップボードへコピー
+- FlowType_K\\エフェクトをコピー\\FlowType_K 形式 (TOML 形式): エフェクトを FlowType_K 形式でクリップボードへコピー
 
 ## 動作確認
 
-- [AviUtl ExEdit2 beta46](https://spring-fragrance.mints.ne.jp/aviutl/)
+- [AviUtl ExEdit2 beta47](https://spring-fragrance.mints.ne.jp/aviutl/)
 
 > [!CAUTION]
-> beta45以降必須．
+> beta47以降必須．
 
 ## 導入・更新・削除
 
-### 導入・更新
+### パッケージファイルからインストール
 
-ダウンロードした`*.au2pkg.zip`をAviUtl2にD&D．
+#### 導入・更新
 
-### 削除
+[こちら][releases-url]からダウンロードした `*.au2pkg.zip` をAviUtl2にD&D．
+
+#### 削除
 
 パッケージ情報からアンインストールする．
+
+### [AviUtl2 カタログ](https://github.com/Neosku/aviutl2-catalog)からインストール
+
+[こちら][catalog-url]から導入，更新，削除を行う．
 
 ## 使い方
 
@@ -48,7 +84,8 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール
 
   - Motion::Based On: モーションを適用する単位を指定
     - Whole: 全体
-    - Characters: 文字単位 (個別オブジェクト毎)
+    - Objects: 個別オブジェクト単位
+    - Characters: 文字単位
     - Characters Excluding Spaces: 空白を除いた文字単位
     - Words: 単語単位
     - Lines: 行単位
@@ -305,6 +342,13 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール
 
   </details>
 
+- <details>
+  <summary>Additional Options</summary>
+
+  - Influence: 影響度合いを指定 (0〜100)
+
+  </details>
+
 ### Trim@FlowType_K
 
 初期ラベル: `Text`
@@ -548,30 +592,49 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール
 
 ### プロパティメニュー
 
-#### FlowType_K\\これ以降の区間へ値を反映
+#### FlowType_K\\値を揃える
 
-現在区間の値を以降の区間の値へコピーする．
+現在区間の値を選択した区間の値へコピーする．
 
-#### FlowType_K\\これ以前の区間へ値を反映
+- 全ての区間
+- 以前の区間
+- 以降の区間
 
-現在区間の値を以前の区間の値へコピーする．
+#### FlowType_K\\値を反転
 
-#### FlowType_K\\すべての区間の値を反転
+選択した区間の値を反転する． (トラックバーは符号の反転，チェックボックスはON/OFF反転)
 
-すべての区間の値を反転する． (トラックバーは符号の反転，チェックボックスはON/OFF反転)
+- 現在区間
+- 全ての区間
+- 以前の区間
+- 以降の区間
+
+#### FlowType_K\\エフェクトをコピー
+
+エフェクトのパラメータをクリップボードへコピーする．
+
+- エイリアス形式 (INI 形式): `.effect` 形式
+- FlowType_K 形式 (TOML 形式): `Motion@FlowType_K` の `Effect::Parameters` で使用できる形式
 
 ## ビルド方法
 
 [リリース用ワークフロー](./.github/workflows/releaser.yml)を参照されたい．
 
-[extern](./plugins/extern/)内`vcpkg`ディレクトリに`vcpkg`本体を配置する必要がある．
+[extern](./plugins/extern/) 内 `vcpkg` ディレクトリに [vcpkg](https://github.com/microsoft/vcpkg) 本体を配置する必要がある．
 
 ## ライセンス
 
-本プログラムのライセンスは[LICENSE](./LICENSE)を参照されたい．
+本プログラムのライセンスは [LICENSE](./LICENSE) を参照されたい．
 
-また，本プログラムが利用するサードパーティ製ライブラリ等のライセンス情報は[THIRD_PARTY_LICENSES](./THIRD_PARTY_LICENSES.md)に記載している．
+また，本プログラムが利用するサードパーティ製ライブラリ等のライセンス情報は [THIRD_PARTY_LICENSES](./THIRD_PARTY_LICENSES.md) に記載している．
 
 ## 更新履歴
 
-[CHANGELOG](./CHANGELOG.md)を参照されたい．
+[CHANGELOG](./CHANGELOG.md) を参照されたい．
+
+<!-- links -->
+
+[releases-url]: https://github.com/korarei/AviUtl2_FlowType_K_Script/releases
+[releases-badge]: https://img.shields.io/github/v/release/korarei/AviUtl2_FlowType_K_Script
+[catalog-url]: https://aviutl2-catalog-badge.sevenc7c.workers.dev/package/korarei.FlowType_K
+[catalog-badge]: https://aviutl2-catalog-badge.sevenc7c.workers.dev/badge/v/korarei.FlowType_K

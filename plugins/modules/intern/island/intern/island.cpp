@@ -1,4 +1,4 @@
-#include "island.hpp"
+#include "../island.hpp"
 
 #include <chrono>
 #include <execution>
@@ -302,11 +302,11 @@ constinit SCRIPT_MODULE_TABLE info = {
 };
 }  // namespace
 
-namespace flow::modules::island {
+namespace flow::module::island {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
 
     host->register_script_module_name(&info, L"Island@FlowType_K");
 }
-}  // namespace flow::modules::island
+}  // namespace flow::module::island

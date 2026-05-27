@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20.0)
 
-project(Object LANGUAGES CXX)
+project(ObjectMenu LANGUAGES CXX)
 
 find_package(Eigen3 CONFIG REQUIRED)
 find_package(utf8cpp CONFIG REQUIRED)
@@ -14,7 +14,7 @@ add_library(${PROJECT_NAME} STATIC
 # Include directories.
 target_include_directories(${PROJECT_NAME}
     PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_SOURCE_DIR}"
 )
 
 # Link libraries.
@@ -24,8 +24,8 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         Eigen3::Eigen
         utf8cpp::utf8cpp
+        Alias
         Font
-        Utilities
 )
 
 # C++ version specification.

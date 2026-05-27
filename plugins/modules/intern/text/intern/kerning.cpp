@@ -1,4 +1,4 @@
-#include "kerning.hpp"
+#include "../kerning.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -10,8 +10,8 @@
 
 #include <module2.h>
 
-#include <font.hpp>
-#include <utilities.hpp>
+#include <intern/font/font.hpp>
+#include <intern/string.hpp>
 
 namespace {
 namespace string = flow::string;
@@ -166,7 +166,7 @@ constinit SCRIPT_MODULE_TABLE info = {
 };
 }  // namespace
 
-namespace flow::modules::text::kerning {
+namespace flow::module::text::kerning {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
@@ -179,4 +179,4 @@ void
 deinit() {
     fonts.reset();
 }
-}  // namespace flow::modules::text::kerning
+}  // namespace flow::module::text::kerning
