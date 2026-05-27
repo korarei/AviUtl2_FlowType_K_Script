@@ -8,6 +8,7 @@
 - プロパティメニューに`エフェクトをコピー`を追加
 - `Motion@FlowType_K` の `Based On` が `Whole` 以外において，個別オブジェクト数が文字数の定数倍になる場合の挙動を追加
 - `Motion@FlowType_K` の `Based On` に `Objects` を追加 (個別オブジェクト毎を `Characters` からこれに変更)
+- `Kerning@FlowType_K` に影響度合いを指定する `Influence` を追加
 - `Motion@FlowType_K` の `Lyric` で退場時の伸縮が想定と逆になっていた問題を修正
 - トランスフォームのターゲットがローカル空間でもワールド空間でもない場合は変換処理が行われないように修正
 - `Align@FlowType_K` のフィルタプラグイン化

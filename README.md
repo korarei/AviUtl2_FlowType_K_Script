@@ -342,6 +342,13 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
   </details>
 
+- <details>
+  <summary>Additional Options</summary>
+
+  - Influence: 影響度合いを指定 (0〜100)
+
+  </details>
+
 ### Trim@FlowType_K
 
 初期ラベル: `Text`
