@@ -4,6 +4,7 @@
 #include <plugin2.h>
 
 #include "editors/editor.hpp"
+#include "filters/filter.hpp"
 #include "intern/font/font.hpp"
 #include "modules/module.hpp"
 
@@ -52,6 +53,7 @@ GetCommonPluginTable() {
 
 void
 RegisterPlugin(HOST_APP_TABLE *host) {
+    flow::filter::init(host, logger);
     flow::module::init(host, logger);
     flow::editor::init(host, logger);
 }

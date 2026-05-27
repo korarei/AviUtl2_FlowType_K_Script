@@ -1,7 +1,5 @@
 #include "../vector.hpp"
 
-#include <numbers>
-
 #include <module2.h>
 
 #include <intern/vector/vector.hpp>
@@ -10,18 +8,6 @@ namespace {
 namespace vector = flow::vector;
 
 constinit LOG_HANDLE *logger = nullptr;
-
-[[nodiscard]] inline constexpr double
-to_rad(double deg) noexcept {
-    constexpr double f = std::numbers::pi / 180.0;
-    return deg * f;
-}
-
-[[nodiscard]] inline constexpr double
-to_deg(double rad) noexcept {
-    constexpr double f = 180.0 / std::numbers::pi;
-    return rad * f;
-}
 
 constexpr void
 rotate(SCRIPT_MODULE_PARAM *param) {
@@ -36,16 +22,16 @@ rotate(SCRIPT_MODULE_PARAM *param) {
         auto z = param->get_param_double(5);
 
         if (mode == 1)
-            w = to_rad(w);
+            w = vector::to_rad(w);
         else if (mode >= 5 && mode <= 21)
-            x = to_rad(x), y = to_rad(y), z = to_rad(z);
+            x = vector::to_rad(x), y = vector::to_rad(y), z = vector::to_rad(z);
 
         try {
             auto angle = vector::to_euler(t, mode, w, x, y, z);
 
-            param->push_result_double(to_deg(angle[0]));
-            param->push_result_double(to_deg(angle[1]));
-            param->push_result_double(to_deg(angle[2]));
+            param->push_result_double(vector::to_deg(angle[0]));
+            param->push_result_double(vector::to_deg(angle[1]));
+            param->push_result_double(vector::to_deg(angle[2]));
         } catch (const std::runtime_error &e) {
             param->set_error(e.what());
         }
@@ -69,9 +55,9 @@ rotate(SCRIPT_MODULE_PARAM *param) {
         }
 
         if (mode == 1)
-            w = to_rad(w);
+            w = vector::to_rad(w);
         else if (mode >= 5 && mode <= 21)
-            x = to_rad(x), y = to_rad(y), z = to_rad(z);
+            x = vector::to_rad(x), y = vector::to_rad(y), z = vector::to_rad(z);
 
         try {
             vector::rotate(t, mode, w, x, y, z, vectors);

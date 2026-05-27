@@ -69,11 +69,12 @@ add_compile_definitions(
 )
 
 # Subdirectories.
-add_subdirectory(intern/vector)
 add_subdirectory(intern/alias)
 add_subdirectory(intern/font)
-add_subdirectory(modules)
+add_subdirectory(intern/vector)
 add_subdirectory(editors)
+add_subdirectory(filters)
+add_subdirectory(modules)
 
 # Main target definition.
 add_library(${PROJECT_NAME} SHARED
@@ -86,6 +87,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         AviUtl2SDK
         Editor
+        Filter
         Font
         Module
 )

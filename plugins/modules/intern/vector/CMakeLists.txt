@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.20.0)
 
 project(VectorModule LANGUAGES CXX)
 
-find_package(Eigen3 CONFIG REQUIRED)
-
 # Library definition.
 add_library(${PROJECT_NAME} STATIC
     intern/vector.cpp
@@ -20,7 +18,6 @@ target_link_libraries(${PROJECT_NAME}
     PUBLIC
         AviUtl2SDK
     PRIVATE
-        Eigen3::Eigen
         Vector
 )
 
