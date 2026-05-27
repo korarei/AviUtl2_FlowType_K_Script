@@ -66,6 +66,11 @@ do
     local utils = require("utilities")
     local lerp = utils.lerp
 
+    local utf8 = obj.module("UTF8@${PROJECT_NAME}")
+
+    local ID = obj.effect_id
+    local KEY_COUNT = "8973f111-5db5-4890-907d-52539fe55570-" .. ID
+
     local getvalue = obj.getvalue
     local INDEX, NUM = obj.index, obj.num
 
@@ -84,26 +89,48 @@ do
 
     text = text:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("<.->", "")
 
+    local i, n = INDEX, NUM
+
+    local c
+    if INDEX == 0 then
+        c = utf8.count(text, true)
+        _G[KEY_COUNT] = c
+    else
+        c = _G[KEY_COUNT]
+    end
+
+    if type(c) == "number" then
+        if n % c == 0 then
+            i = math.floor(i * c / n)
+            n = c
+        end
+    else
+        print("@warn", "Shared count value is missing or corrupted")
+    end
+
+    if INDEX == NUM - 1 then
+        _G[KEY_COUNT] = nil
+    end
+
     local offset = { 0.0, 0.0 }
     if kerning_mode == 1 then
         local kerning = obj.module("Kerning@${PROJECT_NAME}")
 
-        local ID_KERNING = obj.id
-        local KEY_KERNING = "308494ea-bd57-4fbf-9573-458df515646c-" .. ID_KERNING
+        local KEY_KERNING = "308494ea-bd57-4fbf-9573-458df515646c-" .. ID
 
         local t
         if INDEX == 0 then
             local size = tonumber(getvalue("テキスト", "サイズ"))
             local font = getvalue("テキスト", "フォント")
             local align = getvalue("テキスト", "文字揃え")
-            t = { kerning.shift(ID_KERNING, text, size, font, align) }
+            t = { kerning.shift(obj.id, text, size, font, align) }
             _G[KEY_KERNING] = t
         else
             t = _G[KEY_KERNING]
         end
 
-        if type(t) == "table" and #t == NUM then
-            offset = t[INDEX + 1]
+        if type(t) == "table" and #t == n then
+            offset = t[i + 1]
         else
             print("@warn", "Shared kerning offset table is missing or corrupted")
         end
@@ -117,12 +144,11 @@ do
     if filter_regex_pattern ~= "" then
         local regex = obj.module("Regex@${PROJECT_NAME}")
 
-        local ID_REGEX = obj.effect_id
-        local KEY_REGEX = "db5638b7-59ab-4c53-8471-772fc3b03366-" .. ID_REGEX
+        local KEY_REGEX = "db5638b7-59ab-4c53-8471-772fc3b03366-" .. ID
 
         local t = {}
         if INDEX == 0 then
-            for _, m in ipairs({ regex.search(ID_REGEX, text, filter_regex_pattern, filter_capture_group) }) do
+            for _, m in ipairs({ regex.search(ID, text, filter_regex_pattern, filter_capture_group) }) do
                 if not m[2] then
                     t[#t + 1] = m[1]
                 end
@@ -132,8 +158,8 @@ do
             t = _G[KEY_REGEX]
         end
 
-        if type(t) == "table" and #t == NUM then
-            is_matched = t[INDEX + 1]
+        if type(t) == "table" and #t == n then
+            is_matched = t[i + 1]
         else
             print("@warn", "Shared regex filter table is missing or corrupted")
         end
