@@ -7,7 +7,7 @@
 
 #include <module2.h>
 
-#include <intern/utilities.hpp>
+#include <intern/string.hpp>
 
 namespace {
 namespace string = flow::string;

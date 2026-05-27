@@ -6,10 +6,10 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 
 #include <intern/alias/alias.hpp>
-#include <intern/utilities.hpp>
-#include <unordered_map>
+#include <intern/string.hpp>
 
 namespace {
 namespace string = flow::string;

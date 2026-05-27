@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include <intern/utilities.hpp>
+#include <intern/string.hpp>
 
 namespace flow::font {
 IDWriteFactory3 *

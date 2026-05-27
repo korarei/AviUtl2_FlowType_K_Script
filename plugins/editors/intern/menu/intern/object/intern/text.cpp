@@ -13,7 +13,7 @@
 
 #include <intern/alias/alias.hpp>
 #include <intern/font/font.hpp>
-#include <intern/utilities.hpp>
+#include <intern/string.hpp>
 
 namespace {
 namespace string = flow::string;

@@ -11,7 +11,7 @@
 #include <module2.h>
 
 #include <intern/cache.hpp>
-#include <intern/utilities.hpp>
+#include <intern/string.hpp>
 
 namespace {
 namespace string = flow::string;
