@@ -40,7 +40,7 @@ InitializePlugin(DWORD version) {
 
 void
 UninitializePlugin() {
-    flow::modules::deinit();
+    flow::module::deinit();
     flow::font::FontCache::reset();
     flow::font::DWrite::reset();
 }
@@ -52,7 +52,7 @@ GetCommonPluginTable() {
 
 void
 RegisterPlugin(HOST_APP_TABLE *host) {
-    flow::modules::init(host, logger);
-    flow::editors::init(host, logger);
+    flow::module::init(host, logger);
+    flow::editor::init(host, logger);
 }
 }

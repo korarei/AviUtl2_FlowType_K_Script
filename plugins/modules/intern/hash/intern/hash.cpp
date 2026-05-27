@@ -100,11 +100,11 @@ constinit SCRIPT_MODULE_TABLE info = {
 };
 }  // namespace
 
-namespace flow::modules::hash {
+namespace flow::module::hash {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
 
     host->register_script_module_name(&info, L"Hash@FlowType_K");
 }
-}  // namespace flow::modules::hash
+}  // namespace flow::module::hash

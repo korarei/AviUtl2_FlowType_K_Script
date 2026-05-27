@@ -3,11 +3,11 @@ cmake_minimum_required(VERSION 3.20.0)
 project(Module LANGUAGES CXX)
 
 add_subdirectory(intern/hash)
-add_subdirectory(intern/vector)
-add_subdirectory(intern/trim)
 add_subdirectory(intern/island)
-add_subdirectory(intern/toml)
 add_subdirectory(intern/text)
+add_subdirectory(intern/toml)
+add_subdirectory(intern/trim)
+add_subdirectory(intern/vector)
 
 add_library(${PROJECT_NAME} STATIC
     intern/module.cpp

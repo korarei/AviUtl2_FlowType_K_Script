@@ -90,11 +90,11 @@ constinit SCRIPT_MODULE_TABLE info = {
 };
 }  // namespace
 
-namespace flow::modules::trim {
+namespace flow::module::trim {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
 
     host->register_script_module_name(&info, L"Trim@FlowType_K");
 }
-}  // namespace flow::modules::trim
+}  // namespace flow::module::trim

@@ -457,11 +457,11 @@ copy_fx(CopyFormat format, EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar
 }
 }  // namespace
 
-namespace flow::editors::menu::property {
+namespace flow::editor::menu::property {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
-    editor = host->create_edit_handle();
+    ::editor = host->create_edit_handle();
 
     host->register_object_item_menu_param(
             L"FlowType_K\\値を揃える\\全ての区間",
@@ -533,4 +533,4 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
                 copy_fx(CopyFormat::Toml, edit, handle, fx);
             });
 }
-}  // namespace flow::editors::menu::property
+}  // namespace flow::editor::menu::property

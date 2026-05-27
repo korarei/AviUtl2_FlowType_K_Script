@@ -97,11 +97,11 @@ constinit SCRIPT_MODULE_TABLE info = {
 };
 }  // namespace
 
-namespace flow::modules::vector {
+namespace flow::module::vector {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
 
     host->register_script_module_name(&info, L"Vector@FlowType_K");
 }
-}  // namespace flow::modules::vector
+}  // namespace flow::module::vector

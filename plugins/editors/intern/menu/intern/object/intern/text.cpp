@@ -500,11 +500,11 @@ split_text(EDIT_SECTION *edit) {
 }
 }  // namespace
 
-namespace flow::editors::menu::object::text {
+namespace flow::editor::menu::object::text {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
 
     host->register_object_menu(L"FlowType_K\\テキストを文字ごとに分解", split_text);
 }
-}  // namespace flow::editors::menu::object::text
+}  // namespace flow::editor::menu::object::text

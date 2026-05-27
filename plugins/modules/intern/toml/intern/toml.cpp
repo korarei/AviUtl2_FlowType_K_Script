@@ -93,11 +93,11 @@ constinit SCRIPT_MODULE_TABLE info = {
 };
 }  // namespace
 
-namespace flow::modules::toml {
+namespace flow::module::toml {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
 
     host->register_script_module_name(&info, L"Toml@FlowType_K");
 }
-}  // namespace flow::modules::toml
+}  // namespace flow::module::toml

@@ -6,11 +6,11 @@ namespace {
 constinit LOG_HANDLE *logger = nullptr;
 }  // namespace
 
-namespace flow::editors {
+namespace flow::editor {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
 
     menu::init(host, logger);
 }
-}  // namespace flow::editors
+}  // namespace flow::editor

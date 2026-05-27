@@ -166,7 +166,7 @@ constinit SCRIPT_MODULE_TABLE info = {
 };
 }  // namespace
 
-namespace flow::modules::text::kerning {
+namespace flow::module::text::kerning {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
@@ -179,4 +179,4 @@ void
 deinit() {
     fonts.reset();
 }
-}  // namespace flow::modules::text::kerning
+}  // namespace flow::module::text::kerning

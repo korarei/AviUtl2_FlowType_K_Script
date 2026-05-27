@@ -8,21 +8,21 @@
 #include "trim/trim.hpp"
 #include "vector/vector.hpp"
 
-namespace flow::modules {
+namespace flow::module {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *logger) {
     hash::init(host, logger);
-    vector::init(host, logger);
-    trim::init(host, logger);
     island::init(host, logger);
-    toml::init(host, logger);
-    text::regex::init(host, logger);
     text::kerning::init(host, logger);
+    text::regex::init(host, logger);
+    toml::init(host, logger);
+    trim::init(host, logger);
+    vector::init(host, logger);
 }
 
 void
 deinit() {
-    text::regex::deinit();
     text::kerning::deinit();
+    text::regex::deinit();
 }
-}  // namespace flow::modules
+}  // namespace flow::module

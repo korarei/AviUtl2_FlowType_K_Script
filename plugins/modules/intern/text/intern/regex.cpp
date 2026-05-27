@@ -145,7 +145,7 @@ constinit SCRIPT_MODULE_TABLE info = {
 };
 }  // namespace
 
-namespace flow::modules::text::regex {
+namespace flow::module::text::regex {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
@@ -158,4 +158,4 @@ void
 deinit() {
     patterns.reset();
 }
-}  // namespace flow::modules::text::regex
+}  // namespace flow::module::text::regex
