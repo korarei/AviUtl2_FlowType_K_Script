@@ -247,7 +247,7 @@ do
                     pattern = "\\n"
                 end
 
-                for _, m in ipairs({ regex.search(id, text, pattern) }) do
+                for _, m in ipairs({ regex.mark(id, text, pattern) }) do
                     if m[1] then
                         i = i + 1
                     end

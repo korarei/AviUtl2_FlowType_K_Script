@@ -66,6 +66,7 @@ FontData::reset() {
         stream->ReleaseFileFragment(context);
         fragment = nullptr;
         context = nullptr;
+        stream.Reset();
     }
 }
 

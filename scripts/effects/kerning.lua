@@ -148,7 +148,7 @@ do
 
         local t = {}
         if INDEX == 0 then
-            for _, m in ipairs({ regex.search(ID, text, filter_regex_pattern, filter_capture_group) }) do
+            for _, m in ipairs({ regex.mark(ID, text, filter_regex_pattern, filter_capture_group) }) do
                 if not m[2] then
                     t[#t + 1] = m[1]
                 end

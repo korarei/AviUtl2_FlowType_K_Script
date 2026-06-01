@@ -25,7 +25,7 @@ constinit LOG_HANDLE *logger = nullptr;
 Cache patterns;
 
 constexpr void
-search(SCRIPT_MODULE_PARAM *param) {
+mark(SCRIPT_MODULE_PARAM *param) {
     const int n = param->get_param_num();
     if (n != 3 && n != 4) {
         param->set_error("Function call has wrong argument count");
@@ -139,7 +139,7 @@ search(SCRIPT_MODULE_PARAM *param) {
 }
 
 constinit SCRIPT_MODULE_FUNCTION functions[] = {
-        {L"search", search},
+        {L"mark", mark},
         {nullptr, nullptr},
 };
 
