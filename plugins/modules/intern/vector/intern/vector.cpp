@@ -4,6 +4,10 @@
 
 #include <intern/vector/vector.hpp>
 
+#ifndef VERSION
+#define VERSION L"0.1.0"
+#endif
+
 namespace {
 namespace vector = flow::vector;
 

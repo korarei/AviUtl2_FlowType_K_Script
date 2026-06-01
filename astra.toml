@@ -1,11 +1,11 @@
 [astra]
-requires-astra = ">=0.6.3"
+requires-astra = ">=0.6.4"
 
 [project]
 name = "FlowType_K"
 version = "0.1.0"
 author = "Korarei"
-requires-aviutl2 = "2004700"
+requires-aviutl2 = "2004800"
 
 [build]
 [[build.plugins]]
@@ -41,7 +41,6 @@ sources = [
     { file = "${SOURCE}/motion.lua" },
     { file = "${SOURCE}/island.lua" },
     { file = "${SOURCE}/kerning.lua" },
-    { file = "${SOURCE}/trim.lua" },
     { file = "${SOURCE}/blink.lua" },
     { file = "${SOURCE}/echo.lua" },
 ]
@@ -95,7 +94,7 @@ directory = "Script/${PROJECT_NAME}"
 files = ["script:typography"]
 
 [[release.contents.extensions]]
-directory = "Preset/"
+directory = "Preset"
 files = ["./presets/*.preset"]
 
 [[release.contents.documents]]

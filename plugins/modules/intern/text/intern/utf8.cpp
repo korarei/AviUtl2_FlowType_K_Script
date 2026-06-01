@@ -6,6 +6,10 @@
 
 #include <intern/string.hpp>
 
+#ifndef VERSION
+#define VERSION L"0.1.0"
+#endif
+
 namespace {
 namespace string = flow::string;
 

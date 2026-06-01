@@ -10,6 +10,10 @@
 
 #include <module2.h>
 
+#ifndef VERSION
+#define VERSION L"0.1.0"
+#endif
+
 namespace {
 struct RGBA {
     uint8_t r, g, b, a;

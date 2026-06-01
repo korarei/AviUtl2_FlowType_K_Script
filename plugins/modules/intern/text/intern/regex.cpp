@@ -13,6 +13,10 @@
 #include <intern/cache.hpp>
 #include <intern/string.hpp>
 
+#ifndef VERSION
+#define VERSION L"0.1.0"
+#endif
+
 namespace {
 namespace string = flow::string;
 using Cache = flow::cache::Cache<std::optional<re2::RE2>, std::string>;

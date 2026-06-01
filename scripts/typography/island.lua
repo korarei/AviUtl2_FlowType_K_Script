@@ -7,7 +7,7 @@
 local threshold = 0.0 --track@threshold:Threshold,0,100,0,0.01
 local index = -1 --track@index:Index,-1,100,-1,1
 --group:Anchor,true
-local anchor_target = 0 --select@anchor_target:Anchor::Target,Position=0,Pivot Point=1
+local anchor_target = 0 --select@anchor_target:Anchor::Target=1,Pivot Point=0,Position=1
 local anchor_should_overwrite = false --checksection@anchor_should_overwrite:Anchor::Overwrite,false
 --group:Sort,false
 --separator:Order
@@ -91,9 +91,9 @@ do
     do
         local x, y, sign
         if anchor_target == 0 then
-            x, y, sign = "ox", "oy", 1.0
-        elseif anchor_target == 1 then
             x, y, sign = "cx", "cy", -1.0
+        elseif anchor_target == 1 then
+            x, y, sign = "ox", "oy", 1.0
         end
 
         set_anchor = function(dx, dy)
@@ -233,19 +233,19 @@ do
 
         if anchor_target == 0 then
             if anchor_should_overwrite then
-                obj.ox = dx
-                obj.oy = dy
-            else
-                obj.ox = obj.ox + dx
-                obj.oy = obj.oy + dy
-            end
-        elseif anchor_target == 1 then
-            if anchor_should_overwrite then
                 obj.cx = -dx
                 obj.cy = -dy
             else
                 obj.cx = obj.cx - dx
                 obj.cy = obj.cy - dy
+            end
+        elseif anchor_target == 1 then
+            if anchor_should_overwrite then
+                obj.ox = dx
+                obj.oy = dy
+            else
+                obj.ox = obj.ox + dx
+                obj.oy = obj.oy + dy
             end
         end
 
@@ -261,9 +261,9 @@ do
     copy_xform(xform, obj)
     if anchor_should_overwrite then
         if anchor_target == 0 then
-            xform.ox, xform.oy = 0.0, 0.0
-        elseif anchor_target == 1 then
             xform.cx, xform.cy = 0.0, 0.0
+        elseif anchor_target == 1 then
+            xform.ox, xform.oy = 0.0, 0.0
         end
     end
 
