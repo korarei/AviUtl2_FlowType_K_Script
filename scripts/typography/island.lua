@@ -47,7 +47,7 @@ do
     local copy_xform = utils.copy_xform
 
     local island = obj.module("Island@${PROJECT_NAME}")
-    local scan, fetch, reset = island.scan, island.fetch, island.reset
+    local scan, fetch = island.scan, island.fetch
 
     local ID = obj.effect_id
     local CACHE_IMAGE = "cache:cf20d0bc-2ad4-4633-ab0f-2b349128aa13-" .. ID
@@ -253,7 +253,6 @@ do
             apply_tint(index, n)
         end
 
-        reset(ID)
         return
     end
 
@@ -320,6 +319,4 @@ do
             return apply_time_offset(i, n, order)
         end
     end)
-
-    reset(ID)
 end

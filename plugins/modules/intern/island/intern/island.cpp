@@ -3,6 +3,8 @@
 #include <chrono>
 #include <execution>
 #include <format>
+#include <memory>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 
@@ -75,8 +77,41 @@ private:
     int count;
 };
 
+class Cache {
+public:
+    class LockedEntry {
+    public:
+        LockedEntry(std::vector<Island> &e, std::unique_lock<std::mutex> lk) : entry(e), lock(std::move(lk)) {}
+
+        [[nodiscard]] constexpr std::vector<Island> *operator->() noexcept { return &entry; }
+        [[nodiscard]] constexpr std::vector<Island> &operator*() noexcept { return entry; }
+
+    private:
+        std::vector<Island> &entry;
+        std::unique_lock<std::mutex> lock;
+    };
+
+    [[nodiscard]] LockedEntry fetch(int64_t id) {
+        std::unique_lock lock(mtx);
+        auto &ptr = cache[id];
+        if (ptr == nullptr)
+            ptr = std::make_unique<std::vector<Island>>();
+
+        return {*ptr, std::move(lock)};
+    }
+
+    void reset() {
+        std::unique_lock lock(mtx);
+        cache.clear();
+    }
+
+private:
+    std::mutex mtx;
+    std::unordered_map<int64_t, std::unique_ptr<std::vector<Island>>> cache;
+};
+
 constinit LOG_HANDLE *logger = nullptr;
-thread_local std::unordered_map<int64_t, std::vector<Island>> islands;
+Cache islands;
 
 constexpr void
 scan(SCRIPT_MODULE_PARAM *param) {
@@ -204,10 +239,8 @@ scan(SCRIPT_MODULE_PARAM *param) {
         return (a.key(s2) < b.key(s2)) == order(s2);
     });
 
-    auto &isls = islands[id];
-    isls = std::move(tmp);
     std::vector<int> to_idx(label, -1);
-    for (size_t i = 0; i < isls.size(); ++i) to_idx[isls[i].label] = static_cast<int>(i);
+    for (size_t i = 0; i < tmp.size(); ++i) to_idx[tmp[i].label] = static_cast<int>(i);
 
     const auto t4 = Clock::now();
 
@@ -243,7 +276,7 @@ scan(SCRIPT_MODULE_PARAM *param) {
             L"[island::scan] {}x{} n={} | runs={:.3f} uf={:.3f} bbox={:.3f} sort={:.3f} write={:.3f} total={:.3f} ms",
             img.size.x(),
             img.size.y(),
-            islands.size(),
+            tmp.size(),
             ms(t1 - t0),
             ms(t2 - t1),
             ms(t3 - t2),
@@ -253,10 +286,12 @@ scan(SCRIPT_MODULE_PARAM *param) {
 
     logger->verbose(logger, msg.c_str());
 
-    if (isls.empty())
+    if (tmp.empty())
         logger->warn(logger, L"No islands detected at this threshold");
 
-    param->push_result_int(static_cast<int>(isls.size()));
+    param->push_result_int(static_cast<int>(tmp.size()));
+
+    *islands.fetch(id) = std::move(tmp);
 }
 
 constexpr void
@@ -264,14 +299,13 @@ fetch(SCRIPT_MODULE_PARAM *param) {
     const int64_t id = static_cast<int64_t>(param->get_param_double(0));
     const size_t idx = static_cast<size_t>(param->get_param_double(1));
 
-    const auto it = islands.find(id);
+    auto entry = islands.fetch(id);
+    const auto &isls = *entry;
 
-    if (it == islands.end()) {
+    if (isls.empty()) {
         param->set_error("Cache is empty and scan must be performed first");
         return;
     }
-
-    const auto &isls = it->second;
 
     if (idx >= isls.size()) {
         param->set_error("Selected island index is out of bounds");
@@ -288,15 +322,9 @@ fetch(SCRIPT_MODULE_PARAM *param) {
     param->push_result_double(isl.delta.y());
 }
 
-constexpr void
-reset(SCRIPT_MODULE_PARAM *param) {
-    islands.erase(static_cast<int64_t>(param->get_param_double(0)));
-}
-
 constinit SCRIPT_MODULE_FUNCTION functions[] = {
         {L"scan", scan},
         {L"fetch", fetch},
-        {L"reset", reset},
         {nullptr, nullptr},
 };
 
@@ -312,5 +340,10 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
 
     host->register_script_module_name(&info, L"Island@FlowType_K");
+}
+
+void
+deinit() {
+    islands.reset();
 }
 }  // namespace flow::module::island

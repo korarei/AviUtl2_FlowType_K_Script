@@ -56,5 +56,7 @@ RegisterPlugin(HOST_APP_TABLE *host) {
     flow::filter::init(host, logger);
     flow::module::init(host, logger);
     flow::editor::init(host, logger);
+
+    host->register_clear_cache_handler([]([[maybe_unused]] EDIT_SECTION *edit) { flow::font::FontCache::reset(); });
 }
 }
