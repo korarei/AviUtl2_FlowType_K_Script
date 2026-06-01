@@ -32,10 +32,10 @@ cmake --build "$dst"
 artifacts = ["${BUILD_DIRECTORY}/Debug/*.aux2"]
 
 [[build.scripts]]
-id = "typography"
+id = "effect"
 prefix = "@"
 suffix = ".anm2"
-variables = { SOURCE = "./scripts/typography", LABEL = "Text" }
+variables = { SOURCE = "./scripts/effects", LABEL = "Text" }
 include-directories = ["${SOURCE}/shaders"]
 sources = [
     { file = "${SOURCE}/motion.lua" },
@@ -91,7 +91,7 @@ files = ["plugin:core"]
 
 [[release.contents.extensions]]
 directory = "Script/${PROJECT_NAME}"
-files = ["script:typography"]
+files = ["script:effect"]
 
 [[release.contents.extensions]]
 directory = "Preset"
