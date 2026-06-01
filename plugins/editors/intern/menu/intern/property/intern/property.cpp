@@ -37,6 +37,12 @@ enum class CopyFormat {
     Toml,
 };
 
+enum class CopyTarget {
+    Property,
+    EffectProperty,
+    LayerEffectProperty,
+};
+
 [[nodiscard]] inline constexpr std::wstring
 remove_suffix(std::wstring_view s) {
     const auto pos = s.rfind(L':');
@@ -317,6 +323,40 @@ invert_values(InvertScope scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
 }
 
 constexpr void
+copy_prop_name(CopyTarget target, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+    std::wstring name;
+
+    switch (target) {
+        case CopyTarget::Property:
+            name = prop;
+            break;
+        case CopyTarget::EffectProperty:
+            name = std::format(L"{}.{}", fx, prop);
+            break;
+        case CopyTarget::LayerEffectProperty: {
+            struct Context {
+                OBJECT_HANDLE handle;
+                int layer;
+            } ctx{handle, 0};
+
+            editor->call_edit_section_param(&ctx, [](void *param, EDIT_SECTION *edit) {
+                auto *ctx = static_cast<Context *>(param);
+
+                ctx->layer = edit->get_object_layer_frame(ctx->handle).layer + 1;
+            });
+
+            name = std::format(L"layer{}.{}.{}", ctx.layer, fx, prop);
+            break;
+        }
+    }
+
+    if (set_clipboard_text(name))
+        logger->info(logger, std::format(L"Copied '{}' to the clipboard", name).c_str());
+    else
+        logger->error(logger, std::format(L"Failed to copy '{}' to the clipboard", name).c_str());
+}
+
+constexpr void
 copy_fx(CopyFormat format, EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar_t *fx) {
     const auto alias = edit->get_object_alias(handle);
     if (alias == nullptr) {
@@ -517,6 +557,30 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
                 invert_values(InvertScope::Forward, handle, fx, prop);
+            });
+
+    host->register_object_item_menu_param(
+            L"FlowType_K\\プロパティ名をコピー\\{プロパティ名}",
+            false,
+            nullptr,
+            []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+                copy_prop_name(CopyTarget::Property, handle, fx, prop);
+            });
+
+    host->register_object_item_menu_param(
+            L"FlowType_K\\プロパティ名をコピー\\{エフェクト名}.{プロパティ名}",
+            false,
+            nullptr,
+            []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+                copy_prop_name(CopyTarget::EffectProperty, handle, fx, prop);
+            });
+
+    host->register_object_item_menu_param(
+            L"FlowType_K\\プロパティ名をコピー\\{レイヤー名}.{エフェクト名}.{プロパティ名}",
+            false,
+            nullptr,
+            []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+                copy_prop_name(CopyTarget::LayerEffectProperty, handle, fx, prop);
             });
 
     host->register_object_item_menu(
