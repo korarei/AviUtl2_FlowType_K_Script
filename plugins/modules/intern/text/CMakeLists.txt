@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.20.0)
 project(TextModule LANGUAGES CXX)
 
 find_package(Eigen3 CONFIG REQUIRED)
-find_package(re2 CONFIG REQUIRED)
 find_package(utf8cpp CONFIG REQUIRED)
 
 # Library definition.
@@ -25,9 +24,9 @@ target_link_libraries(${PROJECT_NAME}
         AviUtl2SDK
     PRIVATE
         Eigen3::Eigen
-        re2::re2
         utf8cpp::utf8cpp
         Font
+        Regex
 )
 
 # C++ version specification.

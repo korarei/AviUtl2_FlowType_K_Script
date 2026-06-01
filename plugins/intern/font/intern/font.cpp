@@ -81,44 +81,40 @@ FontCache::reset() {
     instance().cache::Cache<FontData, std::string>::reset();
 }
 
-bool
-FontCache::load(hb_face_t *&face, int64_t id, const std::string &name) {
+HB_Font
+FontCache::load(int64_t id, const std::string &name) {
     auto &self = instance();
     auto entry = self.fetch(id, name);
 
-    if (entry->face != nullptr) {
-        face = entry->face.get();
-        return true;
+    if (entry->face == nullptr) {
+        ComPtr<IDWriteFontFace3> dw_face;
+        if (!search(&dw_face, string::to_wstring(string::as_utf8(name))))
+            return nullptr;
+
+        uint32_t count;
+        if (FAILED(dw_face->GetFiles(&count, nullptr)) || count == 0u)
+            throw std::runtime_error("Failed to get font files count");
+
+        if (count != 1u)
+            return nullptr;
+
+        ComPtr<IDWriteFontFile> file;
+        if (FAILED(dw_face->GetFiles(&count, &file)))
+            throw std::runtime_error("Failed to get font file");
+
+        const void *key;
+        uint32_t size;
+        if (FAILED(file->GetReferenceKey(&key, &size)))
+            throw std::runtime_error("Failed to get font file reference key");
+
+        ComPtr<IDWriteFontFileLoader> loader;
+        if (FAILED(file->GetLoader(&loader)))
+            throw std::runtime_error("Failed to get font file loader");
+
+        entry->init(loader.Get(), key, size, dw_face->GetIndex());
     }
 
-    ComPtr<IDWriteFontFace3> dw_face;
-    if (!search(&dw_face, string::to_wstring(string::as_utf8(name))))
-        return false;
-
-    uint32_t count;
-    if (FAILED(dw_face->GetFiles(&count, nullptr)) || count == 0u)
-        throw std::runtime_error("Failed to get font files count");
-
-    if (count != 1u)
-        return false;
-
-    ComPtr<IDWriteFontFile> file;
-    if (FAILED(dw_face->GetFiles(&count, &file)))
-        throw std::runtime_error("Failed to get font file");
-
-    const void *key;
-    uint32_t size;
-    if (FAILED(file->GetReferenceKey(&key, &size)))
-        throw std::runtime_error("Failed to get font file reference key");
-
-    ComPtr<IDWriteFontFileLoader> loader;
-    if (FAILED(file->GetLoader(&loader)))
-        throw std::runtime_error("Failed to get font file loader");
-
-    entry->init(loader.Get(), key, size, dw_face->GetIndex());
-
-    face = entry->face.get();
-    return true;
+    return HB_Font(hb_font_create(entry->face.get()));
 }
 
 bool

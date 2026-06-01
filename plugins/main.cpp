@@ -6,6 +6,7 @@
 #include "editors/editor.hpp"
 #include "filters/filter.hpp"
 #include "intern/font/font.hpp"
+#include "intern/regex/regex.hpp"
 #include "modules/module.hpp"
 
 #ifndef VERSION
@@ -42,6 +43,8 @@ InitializePlugin(DWORD version) {
 void
 UninitializePlugin() {
     flow::module::deinit();
+
+    flow::regex::RegexCache::reset();
     flow::font::FontCache::reset();
     flow::font::DWrite::reset();
 }
@@ -53,10 +56,13 @@ GetCommonPluginTable() {
 
 void
 RegisterPlugin(HOST_APP_TABLE *host) {
+    host->register_clear_cache_handler([]([[maybe_unused]] EDIT_SECTION *edit) {
+        flow::regex::RegexCache::reset();
+        flow::font::FontCache::reset();
+    });
+
     flow::filter::init(host, logger);
     flow::module::init(host, logger);
     flow::editor::init(host, logger);
-
-    host->register_clear_cache_handler([]([[maybe_unused]] EDIT_SECTION *edit) { flow::font::FontCache::reset(); });
 }
 }

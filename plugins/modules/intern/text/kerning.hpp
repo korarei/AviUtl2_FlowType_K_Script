@@ -8,7 +8,4 @@
 namespace flow::module::text::kerning {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *logger);
-
-void
-deinit();
 }  // namespace flow::module::text::kerning

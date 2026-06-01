@@ -85,7 +85,7 @@ private:
 
 class FontCache : private cache::Cache<FontData, std::string> {
 public:
-    [[nodiscard]] static bool load(hb_face_t *&face, int64_t id, const std::string &name);
+    [[nodiscard]] static HB_Font load(int64_t id, const std::string &name);
     static void reset();
 
 private:

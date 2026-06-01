@@ -144,12 +144,11 @@ layout_text(const std::string &text, const std::string &name, double size, std::
     std::vector<Eigen::Vector2d> result;
     result.reserve(text.size() / 2uz);
 
-    hb_face_t *face = nullptr;
+    HB_Font font = FontCache::load(ID::TextSplit, name);
 
-    if (!FontCache::load(face, ID::TextSplit, name))
+    if (font == nullptr)
         throw std::runtime_error("Font file not found");
 
-    HB_Font font(hb_font_create(face));
     hb_font_set_scale(font.get(), static_cast<int>(size * 64.0), static_cast<int>(size * 64.0));
 
     HB_Buffer buffer(hb_buffer_create());

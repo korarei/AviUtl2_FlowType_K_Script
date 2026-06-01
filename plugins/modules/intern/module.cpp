@@ -23,7 +23,5 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *logger) {
 void
 deinit() {
     island::deinit();
-    text::kerning::deinit();
-    text::regex::deinit();
 }
 }  // namespace flow::module
