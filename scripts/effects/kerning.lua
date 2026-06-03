@@ -51,13 +51,8 @@ local tint_opacity = 100.0 --track@tint_opacity:Tint::Opacity,0,100,100,0.01
 --group:Additional Options,false
 local influence = 100.0 --track@influence:Influence,0,100,100,0.01
 
-if not obj.getoption("multi_object") then
+if obj.num < 2 then
     print("@error", "Enable Multi Object to use this script")
-    return
-end
-
-if obj.index >= obj.num then
-    print("@error", "Index is out of bounds")
     return
 end
 

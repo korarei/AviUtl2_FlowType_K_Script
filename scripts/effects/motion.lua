@@ -569,65 +569,67 @@ do
         do
             local i, n = INDEX, NUM
 
-            local text
+            if NUM > 1 then
+                local text
 
-            if motion_based_on >= 0 then
-                local utf8 = obj.module("UTF8@${PROJECT_NAME}")
+                if motion_based_on >= 0 then
+                    local utf8 = obj.module("UTF8@${PROJECT_NAME}")
 
-                local KEY_COUNT = "58172aa6-e0d5-4503-aa68-984427e8f04f-" .. ID
+                    local KEY_COUNT = "58172aa6-e0d5-4503-aa68-984427e8f04f-" .. ID
 
-                text = getvalue("テキスト", "テキスト")
+                    text = getvalue("テキスト", "テキスト")
 
-                if text ~= nil then
-                    text = text:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("<.->", "")
+                    if text ~= nil then
+                        text = text:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("<.->", "")
 
-                    local c
+                        local c
+                        if INDEX == 0 then
+                            c = utf8.count(text, true)
+                            _G[KEY_COUNT] = c
+                        else
+                            c = _G[KEY_COUNT]
+                        end
+
+                        if type(c) == "number" then
+                            if n % c == 0 then
+                                i = floor(i * c / n)
+                                n = c
+                            end
+                        else
+                            print("@warn", "Shared count value is missing or corrupted")
+                        end
+
+                        if INDEX == NUM - 1 then
+                            _G[KEY_COUNT] = nil
+                        end
+                    end
+                end
+
+                if text ~= nil and motion_based_on > 0 and getoption("multi_object") then
+                    local KEY_GROUP = "a7d6bd98-24a1-480a-bf02-679a2c80c83d-" .. ID
+
+                    local t
                     if INDEX == 0 then
-                        c = utf8.count(text, true)
-                        _G[KEY_COUNT] = c
+                        t = group(motion_based_on, text)
+                        _G[KEY_GROUP] = t
                     else
-                        c = _G[KEY_COUNT]
+                        t = _G[KEY_GROUP]
                     end
 
-                    if type(c) == "number" then
-                        if n % c == 0 then
-                            i = floor(i * c / n)
-                            n = c
-                        end
+                    if type(t) == "table" and #t == n then
+                        i = t[i + 1]
+                        n = t[n] + 1
                     else
-                        print("@warn", "Shared count value is missing or corrupted")
+                        print("@warn", "Shared motion group table is missing or corrupted")
                     end
 
                     if INDEX == NUM - 1 then
-                        _G[KEY_COUNT] = nil
+                        _G[KEY_GROUP] = nil
                     end
+                elseif motion_based_on == -2 then
+                    i = 0
+                    n = 1
                 end
-            end
-
-            if text ~= nil and motion_based_on > 0 and getoption("multi_object") then
-                local KEY_GROUP = "a7d6bd98-24a1-480a-bf02-679a2c80c83d-" .. ID
-
-                local t
-                if INDEX == 0 then
-                    t = group(motion_based_on, text)
-                    _G[KEY_GROUP] = t
-                else
-                    t = _G[KEY_GROUP]
-                end
-
-                if type(t) == "table" and #t == n then
-                    i = t[i + 1]
-                    n = t[n] + 1
-                else
-                    print("@warn", "Shared motion group table is missing or corrupted")
-                end
-
-                if INDEX == NUM - 1 then
-                    _G[KEY_GROUP] = nil
-                end
-            elseif motion_based_on == -2 then
-                i = 0
-                n = 1
             end
 
             if motion_order == 1 then

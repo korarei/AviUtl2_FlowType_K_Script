@@ -30,11 +30,12 @@ do
     local utils = require("utilities")
     local copy_xform, stop = utils.copy_xform, utils.stop
 
-    local CACHE_IMAGE = "cache:24a8ba19-70d6-4ceb-ad75-b793c122a10b-" .. obj.effect_id
+    local ID = obj.effect_id
+    local CACHE_IMAGE = "cache:24a8ba19-70d6-4ceb-ad75-b793c122a10b-" .. ID
 
     local max, floor, rad, random, randomseed = math.max, math.floor, math.rad, math.random, math.randomseed
-    local copybuffer, pixelshader = obj.copybuffer, obj.pixelshader
-    local TIME = obj.time
+    local getvalue, copybuffer, pixelshader = obj.getvalue, obj.copybuffer, obj.pixelshader
+    local TIME, INDEX, NUM = obj.time, obj.index, obj.num
 
     layout_count_x = floor(layout_count_x)
     layout_count_y = floor(layout_count_y)
@@ -51,9 +52,9 @@ do
         seed = -seed
     end
 
-    local size = layout_count_x * layout_count_y
+    local count = layout_count_x * layout_count_y
 
-    if size <= 1 then
+    if count <= 1 then
         return
     end
 
@@ -74,11 +75,60 @@ do
         return t
     end
 
+    local w, h = obj.w, obj.h
+
+    if NUM > 1 then
+        local text = getvalue("テキスト", "テキスト")
+        if text ~= nil then
+            local KEY_SIZE = "0a5312f4-0ec0-430b-bbf8-2316b0fd3e20-" .. ID
+
+            local size
+            if INDEX == 0 then
+                local styles = {
+                    ["標準文字"] = 0,
+                    ["影付き文字"] = 1,
+                    ["影付き文字(薄)"] = 2,
+                    ["縁取り文字"] = 3,
+                    ["縁取り文字(細)"] = 4,
+                    ["縁取り文字(太)"] = 5,
+                    ["縁取り文字(角)"] = 6,
+                }
+
+                obj.setfont(
+                    getvalue("テキスト", "フォント") --[[@as string]],
+                    tonumber(getvalue("テキスト", "サイズ")) --[[@as number]],
+                    styles[getvalue("テキスト", "文字装飾")],
+                    0,
+                    0,
+                    getvalue("テキスト", "B") ~= "0",
+                    getvalue("テキスト", "I") ~= "0",
+                    tonumber(getvalue("テキスト", "字間")) --[[@as number]],
+                    tonumber(getvalue("テキスト", "行間")) --[[@as number]]
+                )
+
+                size = { obj.load("text.layout", text:gsub("\\\\", "\\"):gsub("\\n", "\n")) }
+                _G[KEY_SIZE] = size
+            else
+                size = _G[KEY_SIZE]
+            end
+
+            if type(size) == "table" and #size == 2 then
+                ---@cast size number[]
+                w, h = size[1], size[2]
+            else
+                print("@warn", "Shared size table is missing or corrupted")
+            end
+
+            if INDEX == NUM - 1 then
+                _G[KEY_SIZE] = nil
+            end
+        end
+    end
+
     local rx, ry = math.cos(position_offset_axis), math.sin(position_offset_axis)
     local s = math.tan(position_offset_angle)
     local c = s * rx * ry
 
-    local w, h = obj.w, obj.h
     local dx, dy = w + layout_padding_x, h + layout_padding_y
 
     local ex, ey = dx * (1 - c), dx * s * rx * rx
@@ -95,17 +145,17 @@ do
     local xform = {}
     copy_xform(xform, obj)
 
-    local order = (time_offset_order == 2) and permute(size) or nil
+    local order = (time_offset_order == 2) and permute(count) or nil
 
     local i = -1
-    obj.multiobject(size, function()
+    obj.multiobject(count, function()
         i = i + 1
 
         local j
         if time_offset_order == 0 then
             j = i
         elseif time_offset_order == 1 then
-            j = size - i - 1
+            j = count - i - 1
         elseif time_offset_order == 2 then
             ---@cast order integer[]
             j = order[i + 1]
@@ -135,7 +185,7 @@ do
                 "tint@Motion@${SCRIPT_NAME}",
                 "object",
                 "object",
-                { 1.0, 0.0, 0.0, 1.0, 1.0 - i / max(size - 1, 1) }
+                { 1.0, 0.0, 0.0, 1.0, 1.0 - i / max(count - 1, 1) }
             )
         end
 
