@@ -28,7 +28,7 @@ local should_highlight_order = false --check@should_highlight_order:Highlight Or
 do
     --#include "utilities.lua"
     local utils = require("utilities")
-    local copy_xform = utils.copy_xform
+    local copy_xform, stop = utils.copy_xform, utils.stop
 
     local CACHE_IMAGE = "cache:24a8ba19-70d6-4ceb-ad75-b793c122a10b-" .. obj.effect_id
 
@@ -88,7 +88,7 @@ do
     local oy = -0.5 * ((layout_count_x - 1) * ey + (layout_count_y - 1) * fy)
 
     if not copybuffer(CACHE_IMAGE, "object") then
-        print("@error", "Buffer copy operation failed")
+        stop("Failed to copy buffer")
         return
     end
 
@@ -112,7 +112,7 @@ do
         end
 
         if not copybuffer("object", CACHE_IMAGE) then
-            print("@error", "Buffer copy operation failed")
+            stop("Failed to copy buffer")
             return
         end
 

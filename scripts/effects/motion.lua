@@ -77,8 +77,8 @@ local tint_layer = 0 --track@tint_layer:Tint::Layer,-100,100,0,1,---
 --group:Effect,false
 local effect_params = "" --text@effect_params:Effect::Parameters,
 --group:Echo,false
+local echo_count = 0 --track@echo_count:Echo::Count,0,100,0,1,---
 local echo_interval = 0.0 --track@echo_interval:Echo::Interval,-100,100,-1,0.001
-local echo_count = 1 --track@echo_count:Echo::Count,1,100,1,1
 local echo_decay = 50.0 --track@echo_decay:Echo::Decay,0,100,50,0.01
 local echo_composite = 1 --select@echo_composite:Echo::Composite=1,Above=0,Below=1
 --group:Additional Options,false
@@ -109,7 +109,7 @@ do
 
     --#include "utilities.lua"
     local utils = require("utilities")
-    local lerp, clamp, copy_xform = utils.lerp, utils.clamp, utils.copy_xform
+    local lerp, clamp, copy_xform, stop = utils.lerp, utils.clamp, utils.copy_xform, utils.stop
 
     local eps = 1.0e-4
 
@@ -140,6 +140,7 @@ do
 
     tint_layer = layer_reference == 0 and max(tint_layer, 0) or max(LAYER + tint_layer, 0)
 
+    echo_count = echo_count + 1
     echo_decay = echo_decay * 0.01
 
     local should_load_lut = false
@@ -164,10 +165,13 @@ do
     end
 
     if unit == 0 then
-        duration = duration * dt
         motion_cutoff = motion_cutoff * dt
         blink_duration = blink_duration * dt
         echo_interval = echo_interval * dt
+
+        if timing == 0 then
+            duration = duration * dt
+        end
     end
 
     if abs(duration) < eps then
@@ -182,7 +186,7 @@ do
         if should_load_lut then
             local ok, e = pcall(function()
                 if not copybuffer("cache:tmp", "object") then
-                    error("Buffer copy operation failed")
+                    error("Failed to copy buffer")
                 end
 
                 local xform = {}
@@ -191,36 +195,34 @@ do
                 if tint_source == 0 then
                     if not obj.load("image", tint_image) then
                         if not copybuffer("object", "cache:tmp") then
-                            error("Buffer copy operation failed")
+                            error("Failed to copy buffer")
                         end
-                        copy_xform(obj, xform)
 
-                        error("Image file could not be loaded")
+                        error("Failed to load image")
                     end
                 elseif tint_source == 1 then
                     if not obj.load("layer", tint_layer, true) then
                         if not copybuffer("object", "cache:tmp") then
-                            error("Buffer copy operation failed")
+                            error("Failed to copy buffer")
                         end
-                        copy_xform(obj, xform)
 
-                        error("Layer data could not be retrieved")
+                        error("Failed to load layer data")
                     end
                 end
 
                 if not copybuffer(CACHE_LUT, "object") then
-                    error("Buffer copy operation failed")
+                    error("Failed to copy buffer")
                 end
 
                 if not copybuffer("object", "cache:tmp") then
-                    error("Buffer copy operation failed")
+                    error("Failed to copy buffer")
                 end
 
                 copy_xform(obj, xform)
             end)
 
             if not ok then
-                print("@error", e)
+                stop(e)
                 return
             end
         end
@@ -442,7 +444,7 @@ do
                 if should_edge_detect and hz < 0.5 then
                     local ok, e = pcall(function()
                         if not copybuffer("cache:tmp", "object") then
-                            error("Buffer copy operation failed")
+                            error("Failed to copy buffer")
                         end
 
                         effect(
@@ -460,12 +462,12 @@ do
                         pixelshader("alpha_mask", "cache:tmp", "object", { 0.0 }, "mask")
 
                         if not copybuffer("object", "cache:tmp") then
-                            error("Buffer copy operation failed")
+                            error("Failed to copy buffer")
                         end
                     end)
 
                     if not ok then
-                        print("@error", e)
+                        stop(e)
                         return
                     end
                 end
@@ -512,8 +514,9 @@ do
                 string = string,
                 table = table,
                 bit = bit,
-                rand = obj.rand,
-                rand1 = obj.rand1,
+                setfont = obj.setfont,
+                rand = rand,
+                rand1 = rand1,
                 RGB = RGB,
                 HSV = HSV,
                 OR = OR,
@@ -748,7 +751,7 @@ do
         local CACHE_IMAGE = "cache:cc2b9a9b-89d5-4481-b8f0-58ca17cd499f-" .. ID
 
         if not copybuffer(CACHE_IMAGE, "object") then
-            print("@error", "Buffer copy operation failed")
+            stop("Failed to copy buffer")
             return
         end
 
@@ -760,22 +763,26 @@ do
             i = i + 1
 
             if not copybuffer("object", CACHE_IMAGE) then
-                print("@error", "Buffer copy operation failed")
+                stop("Failed to copy buffer")
                 return
             end
 
             copy_xform(obj, xform)
 
             local j = echo_composite == 0 and i or echo_count - i - 1
-            local t = echo_interval * j
             local offset = j / (echo_count - 1)
+
+            local t = echo_interval * j
+            if time + t < 0.0 then
+                t = -time
+            end
 
             if motion_should_mask then
                 mask(function()
-                    motion(clamp(time + t, 0.0, TOTALTIME), offset)
+                    motion(min(time + t, TOTALTIME), offset)
                 end)
             else
-                motion(clamp(time + t, 0.0, TOTALTIME), offset)
+                motion(min(time + t, TOTALTIME), offset)
             end
 
             obj.alpha = obj.alpha * (echo_decay ^ j)

@@ -32,7 +32,7 @@ end
 do
     --#include "utilities.lua"
     local utils = require("utilities")
-    local lerp, copy_xform = utils.lerp, utils.copy_xform
+    local lerp, copy_xform, stop = utils.lerp, utils.copy_xform, utils.stop
 
     local hash = obj.module("Hash@${PROJECT_NAME}")
     local hash4d = hash.hash4d
@@ -103,7 +103,7 @@ do
         if should_edge_detect and hz < 0.5 then
             local ok, e = pcall(function()
                 if not copybuffer("cache:tmp", "object") then
-                    error("Buffer copy operation failed")
+                    error("Failed to copy buffer")
                 end
 
                 obj.effect(
@@ -121,12 +121,12 @@ do
                 pixelshader("alpha_mask@Motion@${SCRIPT_NAME}", "cache:tmp", "object", { 0.0 }, "mask")
 
                 if not copybuffer("object", "cache:tmp") then
-                    error("Buffer copy operation failed")
+                    error("Failed to copy buffer")
                 end
             end)
 
             if not ok then
-                print("@error", e)
+                stop(e)
                 return
             end
         end
@@ -136,7 +136,7 @@ do
                 local r = floor(hw * steps) / (steps - 1)
 
                 if not copybuffer("cache:tmp", "object") then
-                    error("Buffer copy operation failed")
+                    error("Failed to copy buffer")
                 end
 
                 local xform = {}
@@ -145,20 +145,18 @@ do
                 if color_source == 0 then
                     if not obj.load("image", color_image) then
                         if not obj.copybuffer("object", "cache:tmp") then
-                            error("Buffer copy operation failed")
+                            error("Failed to copy buffer")
                         end
-                        copy_xform(obj, xform)
 
-                        error("Image file could not be loaded")
+                        error("Failed to load image file")
                     end
                 elseif color_source == 1 then
                     if not obj.load("layer", color_layer, true) then
                         if not obj.copybuffer("object", "cache:tmp") then
-                            error("Buffer copy operation failed")
+                            error("Failed to copy buffer")
                         end
-                        copy_xform(obj, xform)
 
-                        error("Layer data could not be retrieved")
+                        error("Failed to load layer data")
                     end
                 end
 
@@ -172,14 +170,14 @@ do
                 )
 
                 if not copybuffer("object", "cache:tmp") then
-                    error("Buffer copy operation failed")
+                    error("Failed to copy buffer")
                 end
 
                 copy_xform(obj, xform)
             end)
 
             if not ok then
-                print("@error", e)
+                stop(e)
                 return
             end
         end

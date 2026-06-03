@@ -4,8 +4,8 @@
 --information:Echo@${SCRIPT_NAME} v${PROJECT_VERSION} by ${PROJECT_AUTHOR}
 --label:${LABEL}
 
+local count = 2 --track@count:Count,0,100,2,1,---
 local interval = 0.0 --track@interval:Interval,-100,100,-1,0.001
-local count = 3 --track@count:Count,1,100,3,1
 local decay = 50.0 --track@decay:Decay,0,100,50,0.01
 local composite = 0 --select@composite:Composite=1,Above=0,Below=1
 --group:Tint
@@ -16,14 +16,14 @@ local tint_layer = 0 --track@tint_layer:Tint::Layer,-100,100,0,1,---
 local unit = 0 --select@unit:Unit,Frames=0,Seconds=1
 local layer_reference = 0 --select@layer_reference:Layer Reference,Absolute=0,Relative=1
 
-if count < 2 then
+if count < 1 then
     return
 end
 
 do
     --#include "utilities.lua"
     local utils = require("utilities")
-    local copy_xform = utils.copy_xform
+    local copy_xform, stop = utils.copy_xform, utils.stop
 
     local ID = obj.effect_id
     local CACHE_IMAGE = "cache:2261b3cd-be88-4ee0-b517-2314327fafe2-" .. ID
@@ -36,6 +36,7 @@ do
     decay = decay * 0.01
 
     interval = unit == 0 and interval / obj.framerate or interval
+
     tint_layer = layer_reference == 0 and max(tint_layer, 0) or max(LAYER + tint_layer, 0)
 
     local should_load_lut = false
@@ -55,7 +56,7 @@ do
     if should_load_lut then
         local ok, e = pcall(function()
             if not copybuffer("cache:tmp", "object") then
-                error("Buffer copy operation failed")
+                error("Failed to copy buffer")
             end
 
             local xform = {}
@@ -64,42 +65,40 @@ do
             if tint_source == 0 then
                 if not obj.load("image", tint_image) then
                     if not obj.copybuffer("object", "cache:tmp") then
-                        error("Buffer copy operation failed")
+                        error("Failed to copy buffer")
                     end
-                    copy_xform(obj, xform)
 
-                    error("Image file could not be loaded")
+                    error("Failed to load image file")
                 end
             elseif tint_source == 1 then
                 if not obj.load("layer", tint_layer, true) then
                     if not obj.copybuffer("object", "cache:tmp") then
-                        error("Buffer copy operation failed")
+                        error("Failed to copy buffer")
                     end
-                    copy_xform(obj, xform)
 
-                    error("Layer data could not be retrieved")
+                    error("Failed to load layer data")
                 end
             end
 
             if not copybuffer(CACHE_LUT, "object") then
-                error("Buffer copy operation failed")
+                error("Failed to copy buffer")
             end
 
             if not copybuffer("object", "cache:tmp") then
-                error("Buffer copy operation failed")
+                error("Failed to copy buffer")
             end
 
             copy_xform(obj, xform)
         end)
 
         if not ok then
-            print("@error", e)
+            stop(e)
             return
         end
     end
 
     if not copybuffer(CACHE_IMAGE, "object") then
-        print("@error", "Buffer copy operation failed")
+        stop("Failed to copy buffer")
         return
     end
 
@@ -111,7 +110,7 @@ do
         i = i + 1
 
         if not copybuffer("object", CACHE_IMAGE) then
-            print("@error", "Buffer copy operation failed")
+            stop("Failed to copy buffer")
             return
         end
 

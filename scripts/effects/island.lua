@@ -44,7 +44,7 @@ end
 do
     --#include "utilities.lua"
     local utils = require("utilities")
-    local copy_xform = utils.copy_xform
+    local copy_xform, stop = utils.copy_xform, utils.stop
 
     local island = obj.module("Island@${PROJECT_NAME}")
     local scan, fetch = island.scan, island.fetch
@@ -111,7 +111,7 @@ do
 
         local ok, e = pcall(function()
             if not copybuffer("cache:tmp", "object") then
-                error("Buffer copy operation failed")
+                error("Failed to copy buffer")
             end
 
             local xform = {}
@@ -120,36 +120,34 @@ do
             if tint_source == 0 then
                 if not obj.load("image", tint_image) then
                     if not obj.copybuffer("object", "cache:tmp") then
-                        error("Buffer copy operation failed")
+                        error("Failed to copy buffer")
                     end
-                    copy_xform(obj, xform)
 
-                    error("Image file could not be loaded")
+                    error("Failed to load image file")
                 end
             elseif tint_source == 1 then
                 if not obj.load("layer", tint_layer, true) then
                     if not obj.copybuffer("object", "cache:tmp") then
-                        error("Buffer copy operation failed")
+                        error("Failed to copy buffer")
                     end
-                    copy_xform(obj, xform)
 
-                    error("Layer data could not be retrieved")
+                    error("Failed to load layer data")
                 end
             end
 
             if not copybuffer(CACHE_LUT, "object") then
-                error("Buffer copy operation failed")
+                error("Failed to copy buffer")
             end
 
             if not copybuffer("object", "cache:tmp") then
-                error("Buffer copy operation failed")
+                error("Failed to copy buffer")
             end
 
             copy_xform(obj, xform)
         end)
 
         if not ok then
-            print("@error", e)
+            stop(e)
             return
         end
 
@@ -185,12 +183,12 @@ do
     end
 
     if not copybuffer(CACHE_COLOR_MASK, "object") then
-        print("@error", "Buffer copy operation failed")
+        stop("Failed to copy buffer")
         return
     end
 
     if not copybuffer(CACHE_IMAGE, "object") then
-        print("@error", "Buffer copy operation failed")
+        stop("Failed to copy buffer")
         return
     end
 
@@ -288,7 +286,7 @@ do
                 set_anchor(dx, dy)
             else
                 if not copybuffer("object", CACHE_IMAGE) then
-                    print("@error", "Buffer copy operation failed")
+                    stop("Failed to copy buffer")
                     return
                 end
                 pixelshader("alpha_mask@Motion@${SCRIPT_NAME}", "object", CACHE_ALPHA_MASK, { 1.0 }, "mask")

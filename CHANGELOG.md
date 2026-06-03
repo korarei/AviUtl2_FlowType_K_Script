@@ -8,6 +8,7 @@
 - キャッシュ処理の修正
 - `Echo@FlowType_K` で時間が負になる問題を修正
 - `Island@FlowType_K` で `Time Offset::Interval` 次第では時間が負になる問題を修正
+- `Motion@FlowType_K` および `Echo@FlowType_K` で `Count` が1大きかった問題の修正 (破壊的)
 - `Trim@FlowType_K` のフィルタプラグイン化
 
 ## v0.2.0
