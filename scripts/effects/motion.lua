@@ -99,7 +99,7 @@ local should_highlight = false --check@should_highlight:Highlight Overlap,false
 --#include <mask.hlsl>
 ]]
 
-if obj.index >= obj.num or obj.framerate == 0 then
+if obj.num < 1 or obj.framerate == 0 then
     print("@error", "Framerate is zero or index is out of bounds")
     return
 end
@@ -118,8 +118,8 @@ do
     local getvalue, getinfo, getoption, effect = obj.getvalue, obj.getinfo, obj.getoption, obj.effect
     local copybuffer, pixelshader = obj.copybuffer, obj.pixelshader
     local LAYER, TOTALTIME = obj.layer, obj.totaltime
-    local ID, INDEX, NUM = obj.effect_id, obj.index, obj.num
-    local dt = 1.0 / obj.framerate
+    local ID, INDEX, NUM, FPS = obj.effect_id, obj.index, obj.num, obj.framerate
+    local spf = 1.0 / FPS
 
     motion_overlap = motion_overlap * 0.01
     motion_softness = motion_softness * 0.01
@@ -165,12 +165,12 @@ do
     end
 
     if unit == 0 then
-        motion_cutoff = motion_cutoff * dt
-        blink_duration = blink_duration * dt
-        echo_interval = echo_interval * dt
+        motion_cutoff = motion_cutoff * spf
+        blink_duration = blink_duration * spf
+        echo_interval = echo_interval * spf
 
         if timing == 0 then
-            duration = duration * dt
+            duration = duration * spf
         end
     end
 
@@ -415,19 +415,19 @@ do
                 obj.sx = obj.sx * (2.0 ^ (s * abs(x)))
                 obj.sy = obj.sy * (2.0 ^ (s * abs(y)))
 
-                if t < dt then
+                if t < spf then
                     local p = 2.0 ^ lyric_peak
                     obj.sx = obj.sx * p
                     obj.sy = obj.sy * p
-                elseif lyric_should_overshoot and t < 2.0 * dt then
+                elseif lyric_should_overshoot and t < 2.0 * spf then
                     local p = 2.0 ^ (-lyric_peak * 0.5)
                     obj.sx = obj.sx * p
                     obj.sy = obj.sy * p
                 end
             end
 
-            apply_blink = function(i, n, time)
-                local hx, hy, hz, _ = hash4d(i, n, seed + 1, time * 1000.0)
+            apply_blink = function(i, n, t)
+                local hx, hy, hz, _ = hash4d(i, n, seed + 1, t * FPS * 100.0)
 
                 if should_blink_opacity then
                     obj.alpha = lerp(blink_opacity_min, blink_opacity_max, floor(hx * blink_steps) / (blink_steps - 1))
@@ -678,8 +678,8 @@ do
                     apply_lyric(i, n, t, w)
                 end
 
-                if blink_duration > eps and t < blink_duration then
-                    apply_blink(i, n, time)
+                if blink_duration > eps and t >= 0.0 and t < blink_duration then
+                    apply_blink(i, n, t)
                 end
 
                 if should_load_lut then
@@ -774,22 +774,22 @@ do
             local j = echo_composite == 0 and i or echo_count - i - 1
             local offset = j / (echo_count - 1)
 
-            local t = echo_interval * j
-            if time + t < 0.0 then
-                t = -time
+            local dt = echo_interval * j
+            if time + dt < 0.0 then
+                dt = -time
             end
 
             if motion_should_mask then
                 mask(function()
-                    motion(min(time + t, TOTALTIME), offset)
+                    motion(min(time + dt, TOTALTIME), offset)
                 end)
             else
-                motion(min(time + t, TOTALTIME), offset)
+                motion(min(time + dt, TOTALTIME), offset)
             end
 
             obj.alpha = obj.alpha * (echo_decay ^ j)
 
-            return t
+            return dt
         end)
     else
         if motion_should_mask then

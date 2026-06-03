@@ -86,7 +86,7 @@ do
     local t = (obj.time - (duration < 0.0 and obj.totaltime or 0.0)) / duration
 
     if t < 1.0 then
-        local hx, hy, hz, hw = hash4d(obj.index, obj.num, seed, obj.time * 1000.0)
+        local hx, hy, hz, hw = hash4d(obj.index, obj.num, seed, obj.time * obj.framerate * 100.0)
 
         if should_blink_opacity then
             obj.alpha = lerp(opacity_min, opacity_max, floor(hx * steps) / (steps - 1))
