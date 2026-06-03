@@ -353,6 +353,55 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
   </details>
 
+### Repeat@FlowType_K
+
+初期ラベル: `Text`
+
+各要素を繰り返し配置するスクリプト．
+
+#### パラメータ
+
+- <details>
+  <summary>Layout</summary>
+
+  - Layout::Count::X: X方向の繰り返し回数を指定
+  - Layout::Count::Y: Y方向の繰り返し回数を指定
+  - Layout::Padding::X: X方向の間隔を指定
+  - Layout::Padding::Y: Y方向の間隔を指定
+
+  </details>
+
+- <details>
+  <summary>Position Offset</summary>
+
+  - Position Offset::Angle: ズレの角度 (ズレ量) を指定
+  - Position Offset::Axis: ズレの軸方向を指定
+
+  </details>
+
+- <details>
+  <summary>Time Offset</summary>
+
+  - Time Offset::Interval: 時間オフセットの間隔を指定
+  - Time Offset::Orientation: 時間オフセットの方向を指定
+    - Column: 列順 (横方向)
+    - Row: 行順 (縦方向)
+  - Time Offset::Order: 時間オフセットの適用順序
+    - Forward: 順方向
+    - Reverse: 逆方向
+    - Random: ランダム
+
+  </details>
+
+- <details>
+  <summary>Additional Options</summary>
+
+  - Unit: 時間や間隔の単位を指定
+  - Seed: ランダムシード値を指定
+  - Highlight Order: ソート順をハイライト表示するか指定
+
+  </details>
+
 ### Trim@FlowType_K
 
 初期ラベル: `Text`
