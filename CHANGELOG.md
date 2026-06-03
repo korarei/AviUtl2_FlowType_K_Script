@@ -10,6 +10,7 @@
 
 - `Repeat@FlowType_K` を追加
 - プロパティメニューに`プロパティ名をコピー`を追加
+- `Kerning@FlowType_K` に `Effect::Parameters` を追加
 - `Island@FlowType_K` で `Time Offset::Order` によって個別オブジェクトのインデックス付与順が変わるように変更
 - キャッシュ処理の修正
 - 出力中はオーダー順序を表示しないように修正

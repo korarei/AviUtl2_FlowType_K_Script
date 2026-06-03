@@ -347,6 +347,13 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
   </details>
 
 - <details>
+  <summary>Effect</summary>
+
+  各要素に対してToml形式で指定したエフェクトをかける．
+
+  - Effect::Parameters: エフェクトのパラメータをToml形式で記述する
+
+- <details>
   <summary>Additional Options</summary>
 
   - Influence: 影響度合いを指定 (0〜100)

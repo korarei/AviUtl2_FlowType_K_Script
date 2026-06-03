@@ -48,6 +48,8 @@ local xform_target_world_space = false --checksection@xform_target_world_space:T
 --group:Tint,false
 local tint_color = nil --color@tint_color:Tint::Color,nil
 local tint_opacity = 100.0 --track@tint_opacity:Tint::Opacity,0,100,100,0.01
+--group:Effect,false
+local effect_params = "" --text@effect_params:Effect::Parameters,
 --group:Additional Options,false
 local influence = 100.0 --track@influence:Influence,0,100,100,0.01
 
@@ -68,7 +70,7 @@ do
     local ID = obj.effect_id
     local KEY_COUNT = "8973f111-5db5-4890-907d-52539fe55570-" .. ID
 
-    local getvalue = obj.getvalue
+    local getvalue, effect = obj.getvalue, obj.effect
     local INDEX, NUM = obj.index, obj.num
 
     xform_scale_x = xform_scale_x * 0.01
@@ -84,6 +86,95 @@ do
     if text == nil then
         print("@error", "'テキスト' effect was not found in the source")
         return
+    end
+
+    local apply_fx
+
+    if effect_params ~= "" then
+        local toml = obj.module("Toml@${PROJECT_NAME}")
+
+        local KEY_FX = "c109b1fa-e8e9-4eda-b474-9561558c14ca-" .. ID
+
+        local data
+        if INDEX == 0 then
+            data = { toml.parse("motion::effect", effect_params) }
+            _G[KEY_FX] = data
+        else
+            data = _G[KEY_FX]
+        end
+
+        if type(data) ~= "table" then
+            print("@warn", "Shared FX data table is missing or corrupted")
+        end
+
+        if INDEX == NUM - 1 then
+            _G[KEY_FX] = nil
+        end
+
+        local env = {
+            _VERSION = _VERSION,
+            ipairs = ipairs,
+            pairs = pairs,
+            next = next,
+            select = select,
+            unpack = unpack,
+            type = type,
+            tonumber = tonumber,
+            tostring = tostring,
+            pcall = pcall,
+            xpcall = xpcall,
+            print = print,
+            math = math,
+            string = string,
+            table = table,
+            bit = bit,
+            setfont = obj.setfont,
+            rand = rand,
+            rand1 = rand1,
+            RGB = RGB,
+            HSV = HSV,
+            OR = OR,
+            AND = AND,
+            XOR = XOR,
+            SHIFT = SHIFT,
+            rotation = rotation,
+            debug_print = debug_print,
+            obj = obj,
+        }
+
+        apply_fx = function()
+            local params
+            for i, t in ipairs(data) do
+                if i % 2 == 1 then
+                    params = {}
+                    params[#params + 1] = t
+                else
+                    for k, v in pairs(t) do
+                        local p = k:match("^lua:(.*)$")
+                        if p ~= nil and p ~= "" then
+                            local f, e = load(v, nil, "t", env)
+                            if type(f) == "function" then
+                                local ok, result = pcall(f)
+                                if ok then
+                                    params[#params + 1] = p
+                                    params[#params + 1] = result
+                                else
+                                    print("@warn", "Lua execution failed for the FX key '" .. p .. "'")
+                                    print(result)
+                                end
+                            else
+                                print("@warn", "Lua syntax error detected in the FX key '" .. p .. "'")
+                                print(e)
+                            end
+                        else
+                            params[#params + 1] = k
+                            params[#params + 1] = tonumber(v) or v
+                        end
+                    end
+                    effect(unpack(params))
+                end
+            end
+        end
     end
 
     text = text:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("<.->", "")
@@ -234,6 +325,10 @@ do
                 "object",
                 { r / 255.0, g / 255.0, b / 255.0, 1.0, tint_opacity * influence }
             )
+        end
+
+        if effect_params ~= "" then
+            apply_fx()
         end
     end
 end
