@@ -44,10 +44,13 @@ do
     local LAYER = obj.layer
 
     duration = unit == 0 and duration / obj.framerate or duration
+
     opacity_min = opacity_min * 0.01
     opacity_max = opacity_max * 0.01
+
     scale_min = scale_min * 0.01
     scale_max = scale_max * 0.01
+
     color_layer = layer_reference == 0 and max(color_layer, 0) or max(LAYER + color_layer, 0)
 
     local should_blink_opacity = opacity_max - opacity_min > eps

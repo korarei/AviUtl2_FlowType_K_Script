@@ -2,9 +2,13 @@
 
 ## v0.3.0
 
+- `Repeat@FlowType_K` を追加
 - プロパティメニューに`プロパティ名をコピー`を追加
-- `Trim@FlowType_K` のフィルタプラグイン化
+- `Island@FlowType_K` で `Time Offset::Order` によって個別オブジェクトのインデックス付与順が変わるように変更
 - キャッシュ処理の修正
+- `Echo@FlowType_K` で時間が負になる問題を修正
+- `Island@FlowType_K` で `Time Offset::Interval` 次第では時間が負になる問題を修正
+- `Trim@FlowType_K` のフィルタプラグイン化
 
 ## v0.2.0
 

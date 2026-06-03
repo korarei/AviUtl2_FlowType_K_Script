@@ -31,9 +31,10 @@ do
 
     local max = math.max
     local copybuffer, pixelshader = obj.copybuffer, obj.pixelshader
-    local LAYER = obj.layer
+    local LAYER, TIME = obj.layer, obj.time
 
     decay = decay * 0.01
+
     interval = unit == 0 and interval / obj.framerate or interval
     tint_layer = layer_reference == 0 and max(tint_layer, 0) or max(LAYER + tint_layer, 0)
 
@@ -131,6 +132,11 @@ do
 
         obj.alpha = obj.alpha * (decay ^ j)
 
-        return interval * j
+        local dt = interval * j
+        if TIME + dt < 0.0 then
+            return -TIME
+        else
+            return dt
+        end
     end)
 end

@@ -45,7 +45,8 @@ local xform_rotation_x = 0.0 --track@xform_rotation_x:Transform::Rotation::X,-36
 local xform_rotation_y = 0.0 --track@xform_rotation_y:Transform::Rotation::Y,-3600,3600,0,0.01
 local xform_rotation_z = 0.0 --track@xform_rotation_z:Transform::Rotation::Z,-3600,3600,0,0.01
 --#define EULER XYZ Euler=5,XZY Euler=7,YXZ Euler=11,YZX Euler=15,ZXY Euler=19,ZYX Euler=21
-local xform_rotation_mode = 21 --select@xform_rotation_mode:Transform::Rotation::Mode=21,Quaternion=0,Axis Angle=1,${EULER}
+--#define ROTATION_MODES Quaternion=0,Axis Angle=1,${EULER}
+local xform_rotation_mode = 21 --select@xform_rotation_mode:Transform::Rotation::Mode=21,${ROTATION_MODES}
 --trackgroup@xform_rotation_x,xform_rotation_y,xform_rotation_z:Group::Transform::Rotation
 --separator:Scale
 local xform_scale_x = 100.0 --track@xform_scale_x:Transform::Scale::X,0,10000,100,0.01

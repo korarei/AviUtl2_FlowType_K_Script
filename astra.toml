@@ -41,6 +41,7 @@ sources = [
     { file = "${SOURCE}/motion.lua" },
     { file = "${SOURCE}/island.lua" },
     { file = "${SOURCE}/kerning.lua" },
+    { file = "${SOURCE}/repeat.lua" },
     { file = "${SOURCE}/blink.lua" },
     { file = "${SOURCE}/echo.lua" },
 ]

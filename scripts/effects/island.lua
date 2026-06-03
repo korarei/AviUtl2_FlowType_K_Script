@@ -56,14 +56,14 @@ do
 
     local max, random, randomseed = math.max, math.random, math.randomseed
     local copybuffer, clearbuffer, pixelshader = obj.copybuffer, obj.clearbuffer, obj.pixelshader
-    local LAYER = obj.layer
+    local LAYER, TIME = obj.layer, obj.time
 
     threshold = math.floor(threshold * 2.55)
+
     tint_layer = layer_reference == 0 and max(tint_layer, 0) or max(LAYER + tint_layer, 0)
     time_offset_interval = unit == 0 and time_offset_interval / obj.framerate or time_offset_interval
 
     local should_use_custom_order = #sort_order_custom_order > 0
-    local should_return_time = math.abs(time_offset_interval) > 1.0e-4
 
     local should_load_lut = false
     if tint_source == 0 then
@@ -184,16 +184,6 @@ do
         return t
     end
 
-    local function apply_time_offset(i, n, order)
-        if time_offset_order == 0 then
-            return time_offset_interval * i
-        elseif time_offset_order == 1 then
-            return time_offset_interval * (n - i - 1)
-        elseif time_offset_order == 2 then
-            return time_offset_interval * order[i + 1]
-        end
-    end
-
     if not copybuffer(CACHE_COLOR_MASK, "object") then
         print("@error", "Buffer copy operation failed")
         return
@@ -271,15 +261,25 @@ do
         clearbuffer(CACHE_ALPHA_MASK, W, H)
     end
 
-    local order = (should_return_time and time_offset_order == 2) and permute(n) or nil
+    local order = time_offset_order == 2 and permute(n) or nil
 
     local i = -1
     obj.multiobject(n, function()
         i = i + 1
 
+        local j
+        if time_offset_order == 0 then
+            j = i
+        elseif time_offset_order == 1 then
+            j = n - i - 1
+        elseif time_offset_order == 2 then
+            ---@cast order integer[]
+            j = order[i + 1]
+        end
+
         if should_use_custom_order then
             if i < n - 1 then
-                local j = sort_order_custom_order[i + 1]
+                j = sort_order_custom_order[j + 1]
                 local x, y, w, h, dx, dy = fetch(ID, j)
                 clearbuffer("object", w, h)
                 pixelshader("color_mask", "object", { CACHE_IMAGE, CACHE_COLOR_MASK }, { x, y, j })
@@ -295,15 +295,15 @@ do
                 copy_xform(obj, xform)
             end
         else
-            local x, y, w, h, dx, dy = fetch(ID, i)
+            local x, y, w, h, dx, dy = fetch(ID, j)
             clearbuffer("object", w, h)
-            pixelshader("color_mask", "object", { CACHE_IMAGE, CACHE_COLOR_MASK }, { x, y, i })
+            pixelshader("color_mask", "object", { CACHE_IMAGE, CACHE_COLOR_MASK }, { x, y, j })
             copy_xform(obj, xform)
             set_anchor(dx, dy)
         end
 
         if should_load_lut then
-            apply_tint(i, n)
+            apply_tint(j, n)
         end
 
         if should_highlight_order then
@@ -315,8 +315,11 @@ do
             )
         end
 
-        if should_return_time then
-            return apply_time_offset(i, n, order)
+        local dt = time_offset_interval * i
+        if TIME + dt < 0.0 then
+            return -TIME
+        else
+            return dt
         end
     end)
 end
