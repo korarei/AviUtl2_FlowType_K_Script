@@ -1,19 +1,22 @@
-name: releaser
+name: Releaser
 
 on:
   workflow_dispatch:
   push:
     tags:
-      - '*'
+      - 'v*'
 
 jobs:
   build:
+    name: Build and Release Extension
     runs-on: windows-2025-vs2026
+
     permissions:
       contents: write
       id-token: write
       attestations: write
       artifact-metadata: write
+
     defaults:
       run:
         shell: pwsh
@@ -24,14 +27,22 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Extract name and version
-      id: extract
+    - name: Extract metadata
+      id: meta
       run: |
-        $repo = $env:GITHUB_REPOSITORY.Split('/')[-1]
-        if ($repo -match 'AviUtl2?_(.+?)(?:_(?:Plugin|Script))?$') { $name = $matches[1] } else { $name = $repo }
-        "name=$name" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        $repoName = $env:GITHUB_REPOSITORY.Split('/')[-1]
+        if ($repoName -match 'AviUtl2?_(.+?)(?:_(?:Plugin|Script))?$') {
+            $extensionName = $matches[1]
+        } else {
+            $extensionName = $repoName
+        }
+        "name=$extensionName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-        if ($env:GITHUB_REF_NAME -match '^v(\d+\.\d+\.\d+)') { $version = $matches[1] } else { $version = "0.1.0" }
+        if ($env:GITHUB_REF_NAME -match '^v(\d+\.\d+\.\d+)') {
+            $version = $matches[1]
+        } else {
+            $version = "0.1.0"
+        }
         "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
     - name: Setup MSVC (x64)
@@ -44,26 +55,25 @@ jobs:
       with:
         vcpkgDirectory: plugins/extern/vcpkg
 
-    - name: Setup python
+    - name: Setup Python
       uses: actions/setup-python@v6
       with:
         python-version: '3.14'
 
-    - name: Build plugin (Release)
-      id: build
+    - name: Install dependencies & Build extension
       run: |
-        pip install git+https://github.com/korarei/AviUtl2_Astra.git@v0.6.3
+        pip install git+https://github.com/korarei/AviUtl2_Astra.git@v0.6.4
 
-        astra release -v '${{ steps.extract.outputs.version }}'
+        astra release -v '${{ steps.meta.outputs.version }}'
 
-    - name: Attest
+    - name: Generate Artifact Attestation
       uses: actions/attest@v4
       with:
         subject-path: 'release/*.zip'
 
-    - name: Create release
+    - name: Create GitHub Release
       uses: softprops/action-gh-release@v3
       with:
-        name: '${{ steps.extract.outputs.name }}_${{ github.ref_name }}'
+        name: '${{ steps.meta.outputs.name }}_${{ github.ref_name }}'
         files: 'release/*.zip'
         body_path: 'release/release_notes.md'
