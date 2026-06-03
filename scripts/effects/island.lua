@@ -55,7 +55,7 @@ do
     local CACHE_ALPHA_MASK = "cache:9edded2f-c484-42b7-8bb8-032b0febed5e-" .. ID
 
     local max, random, randomseed = math.max, math.random, math.randomseed
-    local copybuffer, clearbuffer, pixelshader = obj.copybuffer, obj.clearbuffer, obj.pixelshader
+    local getinfo, copybuffer, clearbuffer, pixelshader = obj.getinfo, obj.copybuffer, obj.clearbuffer, obj.pixelshader
     local LAYER, TIME = obj.layer, obj.time
 
     threshold = math.floor(threshold * 2.55)
@@ -304,7 +304,7 @@ do
             apply_tint(j, n)
         end
 
-        if should_highlight_order then
+        if should_highlight_order and not getinfo("saving") then
             pixelshader(
                 "tint@Motion@${SCRIPT_NAME}",
                 "object",

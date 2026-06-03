@@ -115,7 +115,7 @@ do
 
     local max, min, abs, rad, cos, sin, floor = math.max, math.min, math.abs, math.rad, math.cos, math.sin, math.floor
     local random, randomseed = math.random, math.randomseed
-    local getvalue, getoption, effect = obj.getvalue, obj.getoption, obj.effect
+    local getvalue, getinfo, getoption, effect = obj.getvalue, obj.getinfo, obj.getoption, obj.effect
     local copybuffer, pixelshader = obj.copybuffer, obj.pixelshader
     local LAYER, TOTALTIME = obj.layer, obj.totaltime
     local ID, INDEX, NUM = obj.effect_id, obj.index, obj.num
@@ -694,7 +694,7 @@ do
                     obj.alpha = eps
                 end
 
-                if should_highlight then
+                if should_highlight and not getinfo("saving") then
                     local x = 1.0 + (n - 1) * motion_overlap
                     pixelshader("tint", "object", "object", {
                         1.0,

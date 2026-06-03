@@ -12,6 +12,7 @@
 - プロパティメニューに`プロパティ名をコピー`を追加
 - `Island@FlowType_K` で `Time Offset::Order` によって個別オブジェクトのインデックス付与順が変わるように変更
 - キャッシュ処理の修正
+- 出力中はオーダー順序を表示しないように修正
 - `Echo@FlowType_K` で時間が負になる問題を修正
 - `Island@FlowType_K` で `Time Offset::Interval` 次第では時間が負になる問題を修正
 - `Motion@FlowType_K` および `Echo@FlowType_K` で `Count` が1つ大きかった問題の修正 (破壊的)

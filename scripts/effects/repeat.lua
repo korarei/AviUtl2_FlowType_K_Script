@@ -34,7 +34,7 @@ do
     local CACHE_IMAGE = "cache:24a8ba19-70d6-4ceb-ad75-b793c122a10b-" .. ID
 
     local max, floor, rad, random, randomseed = math.max, math.floor, math.rad, math.random, math.randomseed
-    local getvalue, copybuffer, pixelshader = obj.getvalue, obj.copybuffer, obj.pixelshader
+    local getvalue, getinfo, copybuffer, pixelshader = obj.getvalue, obj.getinfo, obj.copybuffer, obj.pixelshader
     local TIME, INDEX, NUM = obj.time, obj.index, obj.num
 
     layout_count_x = floor(layout_count_x)
@@ -180,7 +180,7 @@ do
         obj.ox = obj.ox + ox + ex * col + fx * row
         obj.oy = obj.oy + oy + ey * col + fy * row
 
-        if should_highlight_order then
+        if should_highlight_order and not getinfo("saving") then
             pixelshader(
                 "tint@Motion@${SCRIPT_NAME}",
                 "object",
