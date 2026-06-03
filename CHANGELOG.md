@@ -2,13 +2,19 @@
 
 ## v0.3.0
 
+> [!CAUTION]
+> エコーのバグ修正に伴い，既存プロジェクトを再読み込みすると `Motion@FlowType_K` と `Echo@FlowType_K` でエコーが1つ余分に追加される問題が発生する．
+> そのため，以下の操作を行うことを推奨する．
+> - `Motion@FlowType_K` で `Echo::Count` を1つ小さく設定
+> - `Echo@FlowType_K` で `Count` を1つ小さく設定
+
 - `Repeat@FlowType_K` を追加
 - プロパティメニューに`プロパティ名をコピー`を追加
 - `Island@FlowType_K` で `Time Offset::Order` によって個別オブジェクトのインデックス付与順が変わるように変更
 - キャッシュ処理の修正
 - `Echo@FlowType_K` で時間が負になる問題を修正
 - `Island@FlowType_K` で `Time Offset::Interval` 次第では時間が負になる問題を修正
-- `Motion@FlowType_K` および `Echo@FlowType_K` で `Count` が1大きかった問題の修正 (破壊的)
+- `Motion@FlowType_K` および `Echo@FlowType_K` で `Count` が1つ大きかった問題の修正 (破壊的)
 - `Trim@FlowType_K` のフィルタプラグイン化
 
 ## v0.2.0
