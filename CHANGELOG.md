@@ -10,13 +10,15 @@
 
 - `Repeat@FlowType_K` を追加
 - プロパティメニューに`プロパティ名をコピー`を追加
+- `Motion@FlowType_K` に `Offset` を追加
 - `Kerning@FlowType_K` に `Effect::Parameters` を追加
 - `Island@FlowType_K` で `Time Offset::Order` によって個別オブジェクトのインデックス付与順が変わるように変更
 - キャッシュ処理の修正
 - 出力中はオーダー順序を表示しないように修正
+- `Motion@FlowType_K` で `Timing` が `Manual` の場合，退場モーションがおかしかった問題の修正
 - `Motion@FlowType_K` で点滅させるとき使用する時間値が全体時間であった問題の修正
 - `Motion@FlowType_K` の点滅と `Blink@FlowType_K` の時間変化をFPS依存に修正
-- `Motion@FlowType_K` ， `Echo@FlowType_K` ， `Island@FlowType_K` で出力時間が負になる問題を修正
+- `Motion@FlowType_K` ， `Echo@FlowType_K` ， `Island@FlowType_K` で出力時間が範囲外になる問題を修正
 - `Motion@FlowType_K` および `Echo@FlowType_K` でエコーカウントが1つ大きかった問題の修正 (破壊的)
 - `Trim@FlowType_K` のフィルタプラグイン化
 

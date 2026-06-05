@@ -80,6 +80,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
   - Automatic: 自動
   - Manual: 手動 (中間点で表示タイミングを指定する)
 - Duration: 文字列全体のアニメーションが完了するまでの時間を指定．(正: 登場, 負: 退場)
+- Offset: 登場タイミングのズレを指定．
 
 - <details>
   <summary>Motion</summary>

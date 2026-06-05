@@ -4,7 +4,7 @@
 --information:Echo@${SCRIPT_NAME} v${PROJECT_VERSION} by ${PROJECT_AUTHOR}
 --label:${LABEL}
 
-local count = 2 --track@count:Count,0,100,2,1,---
+local count = 2 --track@count:Count,0,100,2,1
 local interval = 0.0 --track@interval:Interval,-100,100,-1,0.001
 local decay = 50.0 --track@decay:Decay,0,100,50,0.01
 local composite = 0 --select@composite:Composite=1,Above=0,Below=1
@@ -23,7 +23,7 @@ end
 do
     --#include "utilities.lua"
     local utils = require("utilities")
-    local copy_xform, stop = utils.copy_xform, utils.stop
+    local clamp, copy_xform, stop = utils.clamp, utils.copy_xform, utils.stop
 
     local ID = obj.effect_id
     local CACHE_IMAGE = "cache:2261b3cd-be88-4ee0-b517-2314327fafe2-" .. ID
@@ -31,8 +31,9 @@ do
 
     local max = math.max
     local copybuffer, pixelshader = obj.copybuffer, obj.pixelshader
-    local LAYER, TIME = obj.layer, obj.time
+    local LAYER, TIME, TOTALTIME = obj.layer, obj.time, obj.totaltime
 
+    count = count + 1
     decay = decay * 0.01
 
     interval = unit == 0 and interval / obj.framerate or interval
@@ -131,11 +132,6 @@ do
 
         obj.alpha = obj.alpha * (decay ^ j)
 
-        local dt = interval * j
-        if TIME + dt < 0.0 then
-            return -TIME
-        else
-            return dt
-        end
+        return clamp(TIME + interval * j, 0.0, TOTALTIME) - TIME
     end)
 end

@@ -6,6 +6,7 @@
 
 local timing = 0 --select@timing:Timing,Automatic=0,Manual=1
 local duration = 24.0 --track@duration:Duration,-1000,1000,24,0.001,---
+local offset = 0.0 --track@offset:Offset,-1000,1000,0,0.001
 --group:Motion
 --#define BASED_ON Whole=-2,Objects=-1,Characters=0,Characters Excluding Spaces=1,Words=2,Lines=3
 local motion_based_on = 0 --select@motion_based_on:Motion::Based On,${BASED_ON}
@@ -121,6 +122,8 @@ do
     local ID, INDEX, NUM, FPS = obj.effect_id, obj.index, obj.num, obj.framerate
     local spf = 1.0 / FPS
 
+    offset = duration < 0.0 and -offset or offset
+
     motion_overlap = motion_overlap * 0.01
     motion_softness = motion_softness * 0.01
 
@@ -171,6 +174,7 @@ do
 
         if timing == 0 then
             duration = duration * spf
+            offset = offset * spf
         end
     end
 
@@ -305,13 +309,11 @@ do
             local d = duration * (motion_overlap + (1.0 - motion_overlap) / n) * max(motion_softness, eps)
 
             if timing == 1 then
-                i = duration < 0.0 and get_time(i - n - 1) - TOTALTIME - duration or get_time(i)
+                i = duration < 0.0 and get_time(i - n) - TOTALTIME - duration or get_time(i)
                 i = i * (d + duration) / duration
             else
-                i = abs(duration) * i / n
+                i = abs(duration) * i / n - min(d, 0.0)
             end
-
-            i = i - min(d, 0.0)
 
             local p = t / duration + (t - i) / d
             local w = 1.0 - interpolate(p)
@@ -567,7 +569,7 @@ do
         end
 
         do
-            local i, n = INDEX, NUM
+            local i, n, time = INDEX, NUM, obj.time
 
             if NUM > 1 then
                 local text
@@ -662,15 +664,44 @@ do
                     print("@warn", (n - sections) .. " more sections are required to map all units")
                 end
 
-                duration = duration < 0.0 and get_time(-n - 1) - TOTALTIME or get_time(n)
+                if duration < 0.0 then
+                    duration = get_time(-n - 1) - TOTALTIME
 
-                if abs(duration) < eps then
-                    return
+                    if -duration < eps then
+                        return
+                    end
+
+                    local ofs = abs(offset)
+
+                    if ofs >= eps then
+                        local j, t = math.modf(ofs)
+
+                        j = -j - 1
+                        local st = get_time(j)
+                        local range = get_time(j - 1) - st
+                        offset = offset < 0.0 and (range * t + st) - TOTALTIME or TOTALTIME - (range * t + st)
+                    end
+                else
+                    duration = get_time(n)
+
+                    if duration < eps then
+                        return
+                    end
+
+                    local ofs = abs(offset)
+
+                    if ofs >= eps then
+                        local j, t = math.modf(ofs)
+
+                        local st = get_time(j)
+                        local range = get_time(j + 1) - st
+                        offset = offset < 0.0 and -range * t - st or range * t + st
+                    end
                 end
             end
 
-            motion = function(time, offset)
-                local t, w = progress(time, i, n)
+            motion = function(dt, idx)
+                local t, w = progress(clamp(time + dt - offset, 0.0, TOTALTIME), i, n)
 
                 apply_xform(w)
 
@@ -683,7 +714,14 @@ do
                 end
 
                 if should_load_lut then
-                    pixelshader("map", "object", { "object", CACHE_LUT }, { abs(w), offset }, "copy", "clamp")
+                    pixelshader(
+                        "map",
+                        "object",
+                        { "object", CACHE_LUT },
+                        { abs(w), idx / (echo_count - 1) },
+                        "copy",
+                        "clamp"
+                    )
                 end
 
                 if effect_params ~= "" then
@@ -747,10 +785,10 @@ do
         end
     end
 
-    local time = obj.time
-
     if echo_count > 1 then
         local CACHE_IMAGE = "cache:cc2b9a9b-89d5-4481-b8f0-58ca17cd499f-" .. ID
+
+        local TIME = obj.time
 
         if not copybuffer(CACHE_IMAGE, "object") then
             stop("Failed to copy buffer")
@@ -772,32 +810,28 @@ do
             copy_xform(obj, xform)
 
             local j = echo_composite == 0 and i or echo_count - i - 1
-            local offset = j / (echo_count - 1)
 
             local dt = echo_interval * j
-            if time + dt < 0.0 then
-                dt = -time
-            end
 
             if motion_should_mask then
                 mask(function()
-                    motion(min(time + dt, TOTALTIME), offset)
+                    motion(dt, j)
                 end)
             else
-                motion(min(time + dt, TOTALTIME), offset)
+                motion(dt, j)
             end
 
             obj.alpha = obj.alpha * (echo_decay ^ j)
 
-            return dt
+            return clamp(TIME + dt, 0.0, TOTALTIME) - TIME
         end)
     else
         if motion_should_mask then
             mask(function()
-                motion(time, 0.0)
+                motion(0.0, 0.0)
             end)
         else
-            motion(time, 0.0)
+            motion(0.0, 0.0)
         end
     end
 end

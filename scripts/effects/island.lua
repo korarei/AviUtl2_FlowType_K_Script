@@ -44,7 +44,7 @@ end
 do
     --#include "utilities.lua"
     local utils = require("utilities")
-    local copy_xform, stop = utils.copy_xform, utils.stop
+    local clamp, copy_xform, stop = utils.clamp, utils.copy_xform, utils.stop
 
     local island = obj.module("Island@${PROJECT_NAME}")
     local scan, fetch = island.scan, island.fetch
@@ -56,7 +56,7 @@ do
 
     local max, random, randomseed = math.max, math.random, math.randomseed
     local getinfo, copybuffer, clearbuffer, pixelshader = obj.getinfo, obj.copybuffer, obj.clearbuffer, obj.pixelshader
-    local LAYER, TIME = obj.layer, obj.time
+    local LAYER, TIME, TOTALTIME = obj.layer, obj.time, obj.totaltime
 
     threshold = math.floor(threshold * 2.55)
 
@@ -313,11 +313,6 @@ do
             )
         end
 
-        local dt = time_offset_interval * i
-        if TIME + dt < 0.0 then
-            return -TIME
-        else
-            return dt
-        end
+        return clamp(TIME + time_offset_interval * i, 0.0, TOTALTIME) - TIME
     end)
 end

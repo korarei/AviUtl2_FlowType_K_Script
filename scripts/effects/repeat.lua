@@ -28,14 +28,14 @@ local should_highlight_order = false --check@should_highlight_order:Highlight Or
 do
     --#include "utilities.lua"
     local utils = require("utilities")
-    local copy_xform, stop = utils.copy_xform, utils.stop
+    local clamp, copy_xform, stop = utils.clamp, utils.copy_xform, utils.stop
 
     local ID = obj.effect_id
     local CACHE_IMAGE = "cache:24a8ba19-70d6-4ceb-ad75-b793c122a10b-" .. ID
 
     local max, floor, rad, random, randomseed = math.max, math.floor, math.rad, math.random, math.randomseed
     local getvalue, getinfo, copybuffer, pixelshader = obj.getvalue, obj.getinfo, obj.copybuffer, obj.pixelshader
-    local TIME, INDEX, NUM = obj.time, obj.index, obj.num
+    local INDEX, NUM, TIME, TOTALTIME = obj.index, obj.num, obj.time, obj.totaltime
 
     layout_count_x = floor(layout_count_x)
     layout_count_y = floor(layout_count_y)
@@ -189,11 +189,6 @@ do
             )
         end
 
-        local dt = time_offset_interval * i
-        if TIME + dt < 0.0 then
-            return -TIME
-        else
-            return dt
-        end
+        return clamp(TIME + time_offset_interval * i, 0.0, TOTALTIME) - TIME
     end)
 end
