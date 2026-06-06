@@ -4,6 +4,7 @@ target=self
 effect.name=Motion@FlowType_K
 Timing=Automatic
 Duration=24.000
+Offset=0.000
 Motion::Based On=Characters
 Motion::Order=Forward
 Motion::Overlap=100.00
