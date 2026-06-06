@@ -1,8 +1,9 @@
 #include "effect.hpp"
 
 #include <format>
-#include <sstream>
+
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 #include <intern/alias/alias.hpp>
@@ -81,29 +82,30 @@ copy_fx(CopyFormat format, EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar
 
             result.reserve(tmp.size());
 
-            std::istringstream iss(tmp);
-            std::string line;
+            std::string_view remaining(tmp);
 
-            while (std::getline(iss, line)) {
-                std::string_view sv(line);
+            while (!remaining.empty()) {
+                const auto nl = remaining.find('\n');
+                std::string_view line = remaining.substr(0, nl);
+                remaining = nl != std::string_view::npos ? remaining.substr(nl + 1) : std::string_view{};
 
-                if (!sv.empty() && sv.back() == '\r')
-                    sv.remove_suffix(1);
+                if (!line.empty() && line.back() == '\r')
+                    line.remove_suffix(1);
 
-                if (sv.empty()) {
+                if (line.empty()) {
                     result += "\n";
                     continue;
                 }
 
-                if (sv.starts_with("effect.name="))
+                if (line.starts_with("effect.name="))
                     continue;
 
-                if (sv.starts_with('[') && sv.ends_with(']')) {
-                    result += std::format("{}\n", sv);
+                if (line.starts_with('[') && line.ends_with(']')) {
+                    result += std::format("{}\n", line);
                     continue;
                 }
 
-                const std::string_view pair = sv.substr(0uz, sv.find(','));
+                const std::string_view pair = line.substr(0uz, line.find(','));
 
                 const size_t eq = pair.find('=');
                 if (eq == std::string_view::npos) {
