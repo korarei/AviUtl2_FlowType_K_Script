@@ -128,14 +128,18 @@ copy_fx(CopyFormat format, EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar
                             result += std::format("\"{}\"={}\n", k, v);
                             break;
                         case EDIT_HANDLE::EFFECT_ITEM_TYPE_NUMBER: {
-                            const size_t ed = v.find_last_not_of('0');
-                            if (ed != std::string_view::npos)
-                                if (v[ed] == '.')
-                                    result += std::format("\"{}\"={}\n", k, v.substr(0uz, ed + 2uz));
+                            if (v.find('.') != std::string_view::npos) {
+                                const size_t ed = v.find_last_not_of('0');
+                                if (ed != std::string_view::npos)
+                                    if (v[ed] == '.')
+                                        result += std::format("\"{}\"={}\n", k, v.substr(0uz, ed + 2uz));
+                                    else
+                                        result += std::format("\"{}\"={}\n", k, v.substr(0uz, ed + 1uz));
                                 else
-                                    result += std::format("\"{}\"={}\n", k, v.substr(0uz, ed + 1uz));
-                            else
+                                    result += std::format("\"{}\"={}\n", k, v);
+                            } else {
                                 result += std::format("\"{}\"={}\n", k, v);
+                            }
 
                             break;
                         }
