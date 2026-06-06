@@ -25,17 +25,12 @@ rotate(SCRIPT_MODULE_PARAM *param) {
         auto y = param->get_param_double(4);
         auto z = param->get_param_double(5);
 
-        if (mode == 1)
-            w = vector::to_rad(w);
-        else if (mode >= 5 && mode <= 21)
-            x = vector::to_rad(x), y = vector::to_rad(y), z = vector::to_rad(z);
-
         try {
-            auto angle = vector::to_euler(t, mode, w, x, y, z);
+            auto angle = vector::to_euler(t, mode, vector::Unit::Degree, w, x, y, z);
 
-            param->push_result_double(vector::to_deg(angle[0]));
-            param->push_result_double(vector::to_deg(angle[1]));
-            param->push_result_double(vector::to_deg(angle[2]));
+            param->push_result_double(angle[0]);
+            param->push_result_double(angle[1]);
+            param->push_result_double(angle[2]);
         } catch (const std::runtime_error &e) {
             param->set_error(e.what());
         }
@@ -58,13 +53,8 @@ rotate(SCRIPT_MODULE_PARAM *param) {
             };
         }
 
-        if (mode == 1)
-            w = vector::to_rad(w);
-        else if (mode >= 5 && mode <= 21)
-            x = vector::to_rad(x), y = vector::to_rad(y), z = vector::to_rad(z);
-
         try {
-            vector::rotate(t, mode, w, x, y, z, vectors);
+            vector::rotate(t, mode, vector::Unit::Degree, w, x, y, z, vectors);
         } catch (const std::runtime_error &e) {
             param->set_error(e.what());
             return;

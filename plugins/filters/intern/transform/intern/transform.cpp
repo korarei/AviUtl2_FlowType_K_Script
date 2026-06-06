@@ -99,18 +99,13 @@ transform(FILTER_PROC_VIDEO *video) {
     const double sx = scale_x.value * 0.01, sy = scale_y.value * 0.01, sz = scale_z.value * 0.01;
     double rw = rotation_w.value, rx = rotation_x.value, ry = rotation_y.value, rz = rotation_z.value;
 
-    if (rotation_mode.value == 1)
-        rw = vector::to_rad(rw);
-    else if (rotation_mode.value >= 5 && rotation_mode.value <= 21)
-        rx = vector::to_rad(rx), ry = vector::to_rad(ry), rz = vector::to_rad(rz);
-
     if (target_world_space.value) {
         Eigen::Vector3d v(
                 (video->param->x - pivot_x.value * t) * (1.0 + (sx - 1.0) * t),
                 (video->param->y - pivot_y.value * t) * (1.0 + (sy - 1.0) * t),
                 (video->param->z - pivot_z.value * t) * (1.0 + (sz - 1.0) * t));
 
-        vector::rotate(t, rotation_mode.value, rw, rx, ry, rz, std::span{&v, 1});
+        vector::rotate(t, rotation_mode.value, vector::Unit::Degree, rw, rx, ry, rz, std::span{&v, 1});
 
         video->param->x = static_cast<float>(v.x());
         video->param->y = static_cast<float>(v.y());
@@ -118,15 +113,15 @@ transform(FILTER_PROC_VIDEO *video) {
     }
 
     if (target_local_space.value) {
-        const auto angle = vector::to_euler(t, rotation_mode.value, rw, rx, ry, rz);
+        const auto angle = vector::to_euler(t, rotation_mode.value, vector::Unit::Degree, rw, rx, ry, rz);
 
         video->param->cx += static_cast<float>(pivot_x.value * t);
         video->param->cy += static_cast<float>(pivot_y.value * t);
         video->param->cz += static_cast<float>(pivot_z.value * t);
 
-        video->param->rx += static_cast<float>(vector::to_deg(angle[0]));
-        video->param->ry += static_cast<float>(vector::to_deg(angle[1]));
-        video->param->rz += static_cast<float>(vector::to_deg(angle[2]));
+        video->param->rx += static_cast<float>(angle[0]);
+        video->param->ry += static_cast<float>(angle[1]);
+        video->param->rz += static_cast<float>(angle[2]);
 
         video->param->sx = static_cast<float>(std::lerp(video->param->sx, video->param->sx * sx, t));
         video->param->sy = static_cast<float>(std::lerp(video->param->sy, video->param->sy * sy, t));
