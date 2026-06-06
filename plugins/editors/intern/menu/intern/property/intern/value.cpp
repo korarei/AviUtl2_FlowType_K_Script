@@ -17,21 +17,15 @@ namespace string = flow::string;
 constinit LOG_HANDLE *logger = nullptr;
 constinit EDIT_HANDLE *editor = nullptr;
 
-enum class CopyScope {
-    All,
-    Forward,
-    Backward,
-};
-
-enum class InvertScope {
+enum class TargetRange {
     Current,
     All,
-    Forward,
-    Backward,
+    Preceding,
+    Subsequent,
 };
 
 constexpr void
-copy_value(CopyScope scope, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+copy_value(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
     constexpr std::array subjects{
             EDIT_HANDLE::EFFECT_ITEM_TYPE_INTEGER,
             EDIT_HANDLE::EFFECT_ITEM_TYPE_NUMBER,
@@ -39,7 +33,7 @@ copy_value(CopyScope scope, OBJECT_HANDLE handle, const wchar_t *fx, const wchar
     };
 
     struct Context {
-        CopyScope scope;
+        TargetRange scope;
         OBJECT_HANDLE handle;
         const wchar_t *fx;
         const wchar_t *prop;
@@ -80,15 +74,17 @@ copy_value(CopyScope scope, OBJECT_HANDLE handle, const wchar_t *fx, const wchar
         int st = 0, ed = 0;
 
         switch (ctx->scope) {
-            case CopyScope::All:
+            case TargetRange::All:
                 ed = edit->get_object_section_num(ctx->handle);
                 break;
-            case CopyScope::Forward:
+            case TargetRange::Subsequent:
                 st = index;
                 ed = edit->get_object_section_num(ctx->handle);
                 break;
-            case CopyScope::Backward:
+            case TargetRange::Preceding:
                 ed = index;
+                break;
+            default:
                 break;
         }
 
@@ -102,11 +98,12 @@ copy_value(CopyScope scope, OBJECT_HANDLE handle, const wchar_t *fx, const wchar
             double dummy;
             if (!string::to_number(std::string_view(*(values | std::views::drop(2)).begin()), dummy)) {
                 switch (ctx->scope) {
-                    case CopyScope::All:
-                    case CopyScope::Forward:
+                    case TargetRange::All:
+                    case TargetRange::Subsequent:
                         st = 0, ed = 1;
                         break;
-                    case CopyScope::Backward:
+                    case TargetRange::Preceding:
+                    case TargetRange::Current:
                         return;
                 }
             }
@@ -137,7 +134,7 @@ copy_value(CopyScope scope, OBJECT_HANDLE handle, const wchar_t *fx, const wchar
 }
 
 constexpr void
-invert_values(InvertScope scope, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
     constexpr std::array subjects{
             EDIT_HANDLE::EFFECT_ITEM_TYPE_INTEGER,
             EDIT_HANDLE::EFFECT_ITEM_TYPE_NUMBER,
@@ -145,7 +142,7 @@ invert_values(InvertScope scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
     };
 
     struct Context {
-        InvertScope scope;
+        TargetRange scope;
         OBJECT_HANDLE handle;
         const wchar_t *fx;
         const wchar_t *prop;
@@ -186,17 +183,17 @@ invert_values(InvertScope scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
         int st = 0, ed = 0;
 
         switch (ctx->scope) {
-            case InvertScope::Current:
+            case TargetRange::Current:
                 st = ed = index;
                 break;
-            case InvertScope::All:
+            case TargetRange::All:
                 ed = edit->get_object_section_num(ctx->handle);
                 break;
-            case InvertScope::Forward:
+            case TargetRange::Subsequent:
                 st = index;
                 ed = edit->get_object_section_num(ctx->handle);
                 break;
-            case InvertScope::Backward:
+            case TargetRange::Preceding:
                 ed = index;
                 break;
         }
@@ -211,12 +208,12 @@ invert_values(InvertScope scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
             double dummy;
             if (!string::to_number(std::string_view(*(values | std::views::drop(2)).begin()), dummy)) {
                 switch (ctx->scope) {
-                    case InvertScope::All:
-                    case InvertScope::Forward:
+                    case TargetRange::All:
+                    case TargetRange::Subsequent:
                         st = 0, ed = 1;
                         break;
-                    case InvertScope::Current:
-                    case InvertScope::Backward:
+                    case TargetRange::Current:
+                    case TargetRange::Preceding:
                         st = ed = 0;
                         break;
                 }
@@ -280,7 +277,7 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
             false,
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
-                copy_value(CopyScope::All, handle, fx, prop);
+                copy_value(TargetRange::All, handle, fx, prop);
             });
 
     host->register_object_item_menu_param(
@@ -288,7 +285,7 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
             false,
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
-                copy_value(CopyScope::Backward, handle, fx, prop);
+                copy_value(TargetRange::Preceding, handle, fx, prop);
             });
 
     host->register_object_item_menu_param(
@@ -296,7 +293,7 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
             false,
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
-                copy_value(CopyScope::Forward, handle, fx, prop);
+                copy_value(TargetRange::Subsequent, handle, fx, prop);
             });
 
     host->register_object_item_menu_param(
@@ -304,7 +301,7 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
             false,
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
-                invert_values(InvertScope::Current, handle, fx, prop);
+                invert_values(TargetRange::Current, handle, fx, prop);
             });
 
     host->register_object_item_menu_param(
@@ -312,7 +309,7 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
             false,
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
-                invert_values(InvertScope::All, handle, fx, prop);
+                invert_values(TargetRange::All, handle, fx, prop);
             });
 
     host->register_object_item_menu_param(
@@ -320,7 +317,7 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
             false,
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
-                invert_values(InvertScope::Backward, handle, fx, prop);
+                invert_values(TargetRange::Preceding, handle, fx, prop);
             });
 
     host->register_object_item_menu_param(
@@ -328,7 +325,7 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
             false,
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
-                invert_values(InvertScope::Forward, handle, fx, prop);
+                invert_values(TargetRange::Subsequent, handle, fx, prop);
             });
 }
 }  // namespace flow::editor::menu::property::value

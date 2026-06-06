@@ -9,24 +9,24 @@ namespace {
 constinit LOG_HANDLE *logger = nullptr;
 constinit EDIT_HANDLE *editor = nullptr;
 
-enum class CopyTarget {
-    Property,
-    EffectProperty,
-    LayerEffectProperty,
+enum class ReferenceScope {
+    Local,
+    Object,
+    Global,
 };
 
 constexpr void
-copy_prop_name(CopyTarget target, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+copy_prop_name(ReferenceScope target, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
     std::wstring name;
 
     switch (target) {
-        case CopyTarget::Property:
+        case ReferenceScope::Local:
             name = prop;
             break;
-        case CopyTarget::EffectProperty:
+        case ReferenceScope::Object:
             name = std::format(L"{}.{}", fx, prop);
             break;
-        case CopyTarget::LayerEffectProperty: {
+        case ReferenceScope::Global: {
             struct Context {
                 OBJECT_HANDLE handle;
                 int layer;
@@ -61,7 +61,7 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
             false,
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
-                copy_prop_name(CopyTarget::Property, handle, fx, prop);
+                copy_prop_name(ReferenceScope::Local, handle, fx, prop);
             });
 
     host->register_object_item_menu_param(
@@ -69,7 +69,7 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
             false,
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
-                copy_prop_name(CopyTarget::EffectProperty, handle, fx, prop);
+                copy_prop_name(ReferenceScope::Object, handle, fx, prop);
             });
 
     host->register_object_item_menu_param(
@@ -77,7 +77,7 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
             false,
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
-                copy_prop_name(CopyTarget::LayerEffectProperty, handle, fx, prop);
+                copy_prop_name(ReferenceScope::Global, handle, fx, prop);
             });
 }
 }  // namespace flow::editor::menu::property::expression
