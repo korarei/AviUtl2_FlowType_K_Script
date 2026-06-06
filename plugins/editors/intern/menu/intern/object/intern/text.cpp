@@ -455,13 +455,22 @@ split_text(EDIT_SECTION *edit) {
             info.start,
             0));
 
+    auto negate = [](std::string_view s) -> std::string {
+        if (s.starts_with('-'))
+            return std::string(s.substr(1));
+        else if (s.starts_with('0'))
+            return std::string(s);
+        else
+            return "-" + std::string(s);
+    };
+
     edit->create_object_from_alias(
             std::format(
                     empty_object_alias,
                     meta.alias(),
-                    "-" + std::string(fx_xform.get("中心X", "0.00")),
-                    "-" + std::string(fx_xform.get("中心Y", "0.00")),
-                    "-" + std::string(fx_xform.get("中心Z", "0.00")),
+                    negate(fx_xform.get("中心X", "0.00")),
+                    negate(fx_xform.get("中心Y", "0.00")),
+                    negate(fx_xform.get("中心Z", "0.00")),
                     "0.00",
                     "0.00",
                     "0.00",
