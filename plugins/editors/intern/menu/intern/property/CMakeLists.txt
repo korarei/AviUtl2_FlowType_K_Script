@@ -4,7 +4,10 @@ project(PropertyMenu LANGUAGES CXX)
 
 # Library definition.
 add_library(${PROJECT_NAME} STATIC
+    intern/effect.cpp
+    intern/expression.cpp
     intern/property.cpp
+    intern/value.cpp
 )
 
 # Include directories.

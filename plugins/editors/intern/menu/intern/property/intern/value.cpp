@@ -1,0 +1,334 @@
+#include "value.hpp"
+
+#include <algorithm>
+#include <array>
+#include <format>
+#include <ranges>
+#include <string>
+#include <string_view>
+
+#include <intern/string.hpp>
+
+#include "utilities.hpp"
+
+namespace {
+namespace string = flow::string;
+
+constinit LOG_HANDLE *logger = nullptr;
+constinit EDIT_HANDLE *editor = nullptr;
+
+enum class CopyScope {
+    All,
+    Forward,
+    Backward,
+};
+
+enum class InvertScope {
+    Current,
+    All,
+    Forward,
+    Backward,
+};
+
+constexpr void
+copy_value(CopyScope scope, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+    constexpr std::array subjects{
+            EDIT_HANDLE::EFFECT_ITEM_TYPE_INTEGER,
+            EDIT_HANDLE::EFFECT_ITEM_TYPE_NUMBER,
+            EDIT_HANDLE::EFFECT_ITEM_TYPE_CHECK,
+    };
+
+    struct Context {
+        CopyScope scope;
+        OBJECT_HANDLE handle;
+        const wchar_t *fx;
+        const wchar_t *prop;
+        int type;
+    } ctx{scope, handle, fx, prop, 0};
+
+    if (!editor->enum_effect_item(
+                flow::editor::menu::property::remove_suffix(fx).c_str(),
+                &ctx,
+                [](void *param, const wchar_t *prop, int type) {
+                    auto *ctx = static_cast<Context *>(param);
+
+                    if (std::wstring_view(ctx->prop) == prop)
+                        ctx->type = type;
+                }))
+        return;
+
+    if (!std::ranges::contains(subjects, ctx.type))
+        return;
+
+    editor->call_edit_section_param(&ctx, [](void *param, EDIT_SECTION *edit) {
+        const auto *ctx = static_cast<const Context *>(param);
+
+        const auto props = string::as_string_view(edit->get_object_item_value(ctx->handle, ctx->fx, ctx->prop));
+
+        if (props.empty()) {
+            logger->error(logger, L"Failed to get the value");
+            return;
+        }
+
+        const auto index = edit->get_focus_object_section();
+
+        if (index < 0) {
+            logger->error(logger, L"Failed to get the focus section");
+            return;
+        }
+
+        int st = 0, ed = 0;
+
+        switch (ctx->scope) {
+            case CopyScope::All:
+                ed = edit->get_object_section_num(ctx->handle);
+                break;
+            case CopyScope::Forward:
+                st = index;
+                ed = edit->get_object_section_num(ctx->handle);
+                break;
+            case CopyScope::Backward:
+                ed = index;
+                break;
+        }
+
+        auto values = props | std::views::split(',');
+        auto remaining = values | std::views::drop(1);
+
+        if (remaining.begin() == remaining.end()) {
+            return;
+        } else if (ctx->type != EDIT_HANDLE::EFFECT_ITEM_TYPE_CHECK) {
+            // 中間点無視
+            double dummy;
+            if (!string::to_number(std::string_view(*(values | std::views::drop(2)).begin()), dummy)) {
+                switch (ctx->scope) {
+                    case CopyScope::All:
+                    case CopyScope::Forward:
+                        st = 0, ed = 1;
+                        break;
+                    case CopyScope::Backward:
+                        return;
+                }
+            }
+        }
+
+        auto targets = values | std::views::take(ed + 1) | std::views::drop(st);
+        if (targets.begin() == targets.end())
+            return;
+
+        const std::string_view src(*(values | std::views::drop(index)).begin());
+
+        const auto result = std::ranges::to<std::string>(
+                values | std::views::enumerate | std::views::transform([=](auto &&pair) -> std::string_view {
+                    const auto [i, v] = pair;
+                    // トラックバー: [0, n]
+                    // チェックボックス: [0, n - 1] (これ以降の要素がないのでトラックバーと同一で可)
+                    return i >= st && i <= ed ? src : std::string_view(v);
+                })
+                | std::views::join_with(','));
+
+        if (edit->set_object_item_value(ctx->handle, ctx->fx, ctx->prop, result.c_str()))
+            logger->info(
+                    logger,
+                    std::format(
+                            L"Updated '{}:{}' to '{}'", ctx->fx, ctx->prop, string::to_wstring(string::as_utf8(result)))
+                            .c_str());
+    });
+}
+
+constexpr void
+invert_values(InvertScope scope, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+    constexpr std::array subjects{
+            EDIT_HANDLE::EFFECT_ITEM_TYPE_INTEGER,
+            EDIT_HANDLE::EFFECT_ITEM_TYPE_NUMBER,
+            EDIT_HANDLE::EFFECT_ITEM_TYPE_CHECK,
+    };
+
+    struct Context {
+        InvertScope scope;
+        OBJECT_HANDLE handle;
+        const wchar_t *fx;
+        const wchar_t *prop;
+        int type;
+    } ctx{scope, handle, fx, prop, 0};
+
+    if (!editor->enum_effect_item(
+                flow::editor::menu::property::remove_suffix(fx).c_str(),
+                &ctx,
+                [](void *param, const wchar_t *prop, int type) {
+                    auto *ctx = static_cast<Context *>(param);
+
+                    if (std::wstring_view(ctx->prop) == prop)
+                        ctx->type = type;
+                }))
+        return;
+
+    if (!std::ranges::contains(subjects, ctx.type))
+        return;
+
+    editor->call_edit_section_param(&ctx, [](void *param, EDIT_SECTION *edit) {
+        const auto *ctx = static_cast<const Context *>(param);
+
+        const auto props = string::as_string_view(edit->get_object_item_value(ctx->handle, ctx->fx, ctx->prop));
+
+        if (props.empty()) {
+            logger->error(logger, L"Failed to get the value");
+            return;
+        }
+
+        const auto index = edit->get_focus_object_section();
+
+        if (index < 0) {
+            logger->error(logger, L"Failed to get the focus section");
+            return;
+        }
+
+        int st = 0, ed = 0;
+
+        switch (ctx->scope) {
+            case InvertScope::Current:
+                st = ed = index;
+                break;
+            case InvertScope::All:
+                ed = edit->get_object_section_num(ctx->handle);
+                break;
+            case InvertScope::Forward:
+                st = index;
+                ed = edit->get_object_section_num(ctx->handle);
+                break;
+            case InvertScope::Backward:
+                ed = index;
+                break;
+        }
+
+        auto values = props | std::views::split(',');
+        auto remaining = values | std::views::drop(1);
+
+        if (remaining.begin() == remaining.end()) {
+            st = ed = 0;
+        } else if (ctx->type != EDIT_HANDLE::EFFECT_ITEM_TYPE_CHECK) {
+            // 中間点無視
+            double dummy;
+            if (!string::to_number(std::string_view(*(values | std::views::drop(2)).begin()), dummy)) {
+                switch (ctx->scope) {
+                    case InvertScope::All:
+                    case InvertScope::Forward:
+                        st = 0, ed = 1;
+                        break;
+                    case InvertScope::Current:
+                    case InvertScope::Backward:
+                        st = ed = 0;
+                        break;
+                }
+            }
+        }
+
+        auto targets = values | std::views::take(ed + 1) | std::views::drop(st);
+        if (targets.begin() == targets.end())
+            return;
+
+        std::string result;
+
+        switch (ctx->type) {
+            case EDIT_HANDLE::EFFECT_ITEM_TYPE_INTEGER:
+            case EDIT_HANDLE::EFFECT_ITEM_TYPE_NUMBER:
+                result = std::ranges::to<std::string>(
+                        values | std::views::enumerate | std::views::transform([=](auto &&pair) -> std::string {
+                            const auto [i, v] = pair;
+                            const std::string_view sv(v);
+
+                            if (!sv.empty() && i >= st && i <= ed)
+                                return sv.starts_with("-") ? std::string(sv.substr(1uz)) : "-" + std::string(sv);
+
+                            return std::string(sv);
+                        })
+                        | std::views::join_with(','));
+                break;
+            case EDIT_HANDLE::EFFECT_ITEM_TYPE_CHECK:
+                result = std::ranges::to<std::string>(
+                        values | std::views::enumerate | std::views::transform([=](auto &&pair) -> std::string_view {
+                            const auto [i, v] = pair;
+                            const std::string_view sv(v);
+
+                            if (!sv.empty() && i >= st && i <= ed)
+                                return sv == "0" ? "1" : "0";
+
+                            return sv;
+                        })
+                        | std::views::join_with(','));
+                break;
+        }
+
+        if (edit->set_object_item_value(ctx->handle, ctx->fx, ctx->prop, result.c_str()))
+            logger->info(
+                    logger,
+                    std::format(
+                            L"Updated '{}:{}' to '{}'", ctx->fx, ctx->prop, string::to_wstring(string::as_utf8(result)))
+                            .c_str());
+    });
+}
+}  // namespace
+
+namespace flow::editor::menu::property::value {
+void
+init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
+    logger = log_handle;
+    ::editor = edit_handle;
+
+    host->register_object_item_menu_param(
+            L"FlowType_K\\値を揃える\\全ての区間",
+            false,
+            nullptr,
+            []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+                copy_value(CopyScope::All, handle, fx, prop);
+            });
+
+    host->register_object_item_menu_param(
+            L"FlowType_K\\値を揃える\\以前の区間",
+            false,
+            nullptr,
+            []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+                copy_value(CopyScope::Backward, handle, fx, prop);
+            });
+
+    host->register_object_item_menu_param(
+            L"FlowType_K\\値を揃える\\以降の区間",
+            false,
+            nullptr,
+            []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+                copy_value(CopyScope::Forward, handle, fx, prop);
+            });
+
+    host->register_object_item_menu_param(
+            L"FlowType_K\\値を反転\\現在の区間",
+            false,
+            nullptr,
+            []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+                invert_values(InvertScope::Current, handle, fx, prop);
+            });
+
+    host->register_object_item_menu_param(
+            L"FlowType_K\\値を反転\\全ての区間",
+            false,
+            nullptr,
+            []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+                invert_values(InvertScope::All, handle, fx, prop);
+            });
+
+    host->register_object_item_menu_param(
+            L"FlowType_K\\値を反転\\以前の区間",
+            false,
+            nullptr,
+            []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+                invert_values(InvertScope::Backward, handle, fx, prop);
+            });
+
+    host->register_object_item_menu_param(
+            L"FlowType_K\\値を反転\\以降の区間",
+            false,
+            nullptr,
+            []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+                invert_values(InvertScope::Forward, handle, fx, prop);
+            });
+}
+}  // namespace flow::editor::menu::property::value
