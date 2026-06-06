@@ -2,7 +2,7 @@
 
 #include <array>
 #include <numbers>
-#include <vector>
+#include <span>
 
 #include <Eigen/Dense>
 
@@ -20,7 +20,7 @@ to_deg(double rad) noexcept {
 }
 
 void
-rotate(double t, int mode, double w, double x, double y, double z, std::vector<Eigen::Vector3d> &vectors);
+rotate(double t, int mode, double w, double x, double y, double z, std::span<Eigen::Vector3d> vectors);
 
 [[nodiscard]] std::array<double, 3uz>
 to_euler(double t, int mode, double w, double x, double y, double z);

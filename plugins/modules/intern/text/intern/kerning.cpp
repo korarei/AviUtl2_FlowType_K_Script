@@ -1,8 +1,8 @@
 #include "../kerning.hpp"
 
 #include <cstdint>
-#include <sstream>
 #include <string>
+#include <string_view>
 
 #include <utf8.h>
 #include <Eigen/Dense>
@@ -94,15 +94,21 @@ shift(SCRIPT_MODULE_PARAM *param) {
 
     HB_Buffer buffer(hb_buffer_create());
 
-    std::istringstream iss(text);
-    std::string line;
+    std::string_view remaining(text);
 
-    while (std::getline(iss, line)) {
+    while (!remaining.empty()) {
+        const auto nl = remaining.find('\n');
+        auto line = remaining.substr(0, nl);
+        remaining = nl != std::string_view::npos ? remaining.substr(nl + 1) : std::string_view{};
+
+        if (!line.empty() && line.back() == '\r')
+            line.remove_suffix(1);
+
         if (line.empty())
             continue;
 
         hb_buffer_reset(buffer.get());
-        hb_buffer_add_utf8(buffer.get(), line.c_str(), -1, 0, -1);
+        hb_buffer_add_utf8(buffer.get(), line.data(), static_cast<int>(line.size()), 0, static_cast<int>(line.size()));
         hb_buffer_set_direction(buffer.get(), direction);
         hb_buffer_guess_segment_properties(buffer.get());
 
@@ -116,10 +122,11 @@ shift(SCRIPT_MODULE_PARAM *param) {
         Eigen::Vector2d actual(0.0, 0.0);
 
         for (uint32_t i = 0u; i < count; ++i) {
-            auto it = line.begin() + info[i].cluster;
+            auto it = line.data() + info[i].cluster;
+            const auto end = line.data() + line.size();
             utf8::utfchar32_t cp = 0;
             try {
-                cp = utf8::next(it, line.end());
+                cp = utf8::next(it, end);
             } catch (...) {
                 param->set_error("Character encoding is unsupported in the text");
                 return;

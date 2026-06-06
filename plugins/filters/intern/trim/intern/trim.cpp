@@ -3,6 +3,7 @@
 #include <Eigen/Core>
 #include <cstdint>  // IWYU pragma: keep
 #include <execution>
+#include <memory>
 #include <numeric>
 #include <ranges>
 
@@ -30,9 +31,9 @@ struct RGBA {
 
 struct Image {
     Eigen::Vector2i size;
-    std::vector<RGBA> data;
+    std::unique_ptr<RGBA[]> data;
 
-    Image(int w, int h) : size(w, h), data(w * h) {}
+    Image(int w, int h) : size(w, h), data(std::make_unique_for_overwrite<RGBA[]>(static_cast<size_t>(w) * h)) {}
 };
 
 FILTER_ITEM_TRACK threshold = FILTER_ITEM_TRACK(L"Threshold", 0.0, 0.0, 100.0, 0.01);
@@ -73,7 +74,7 @@ trim(FILTER_PROC_VIDEO *video) {
     if (img.size.x() <= 0 || img.size.y() <= 0
         || !video->get_image_resource_data(
                 L"object",
-                img.data.data(),
+                img.data.get(),
                 img.size.x(),
                 img.size.y(),
                 img.size.x() * sizeof(RGBA),
@@ -95,7 +96,7 @@ trim(FILTER_PROC_VIDEO *video) {
             [&](int y) -> Box {
                 Box box{};
 
-                const auto *row = img.data.data() + y * img.size.x();
+                const auto *row = img.data.get() + y * img.size.x();
                 for (int x = 0; x < img.size.x(); ++x) {
                     if (row[x].a > t)
                         box.extend(Eigen::Vector2i(x, y));

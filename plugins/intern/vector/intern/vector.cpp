@@ -22,7 +22,7 @@ to_rotation_matrix(int mode, const std::array<double, 3> &angle) noexcept {
 
 namespace flow::vector {
 void
-rotate(double t, int mode, double w, double x, double y, double z, std::vector<Eigen::Vector3d> &vectors) {
+rotate(double t, int mode, double w, double x, double y, double z, std::span<Eigen::Vector3d> vectors) {
     if (mode == 0) {
         const auto q = q0.slerp(std::abs(t), Eigen::Quaterniond(w, x, y, z).normalized());
 

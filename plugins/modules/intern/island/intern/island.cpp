@@ -5,6 +5,7 @@
 #include <format>
 #include <memory>
 #include <mutex>
+#include <ranges>
 #include <unordered_map>
 #include <vector>
 
@@ -142,8 +143,9 @@ scan(SCRIPT_MODULE_PARAM *param) {
     const auto t0 = Clock::now();
 
     std::vector<std::vector<Run>> runs(img.size.y());
-    std::for_each(std::execution::par, runs.begin(), runs.end(), [&](auto &row) {
-        const int y = static_cast<int>(&row - &runs[0]);
+    const auto rows = std::views::iota(0, img.size.y());
+    std::for_each(std::execution::par, rows.begin(), rows.end(), [&](int y) {
+        auto &row = runs[y];
         const RGBA *p = img.data + y * img.size.x();
 
         int x = 0;
@@ -244,8 +246,8 @@ scan(SCRIPT_MODULE_PARAM *param) {
 
     const auto t4 = Clock::now();
 
-    std::for_each(std::execution::par_unseq, runs.begin(), runs.end(), [&](const auto &row) {
-        const int y = static_cast<int>(&row - &runs[0]);
+    std::for_each(std::execution::par_unseq, rows.begin(), rows.end(), [&](int y) {
+        const auto &row = runs[y];
         RGBA *line = img.data + y * img.size.x();
         int prev = 0;
 
@@ -340,6 +342,7 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
 
     host->register_script_module_name(&info, L"Island@FlowType_K");
+    host->register_clear_cache_handler([]([[maybe_unused]] EDIT_SECTION *edit) { islands.reset(); });
 }
 
 void

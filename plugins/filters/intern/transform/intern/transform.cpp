@@ -105,18 +105,16 @@ transform(FILTER_PROC_VIDEO *video) {
         rx = vector::to_rad(rx), ry = vector::to_rad(ry), rz = vector::to_rad(rz);
 
     if (target_world_space.value) {
-        const Eigen::Vector3d v(
+        Eigen::Vector3d v(
                 (video->param->x - pivot_x.value * t) * (1.0 + (sx - 1.0) * t),
                 (video->param->y - pivot_y.value * t) * (1.0 + (sy - 1.0) * t),
                 (video->param->z - pivot_z.value * t) * (1.0 + (sz - 1.0) * t));
 
-        std::vector<Eigen::Vector3d> vectors{v};
+        vector::rotate(t, rotation_mode.value, rw, rx, ry, rz, std::span{&v, 1});
 
-        vector::rotate(t, rotation_mode.value, rw, rx, ry, rz, vectors);
-
-        video->param->x = static_cast<float>(vectors[0].x());
-        video->param->y = static_cast<float>(vectors[0].y());
-        video->param->z = static_cast<float>(vectors[0].z());
+        video->param->x = static_cast<float>(v.x());
+        video->param->y = static_cast<float>(v.y());
+        video->param->z = static_cast<float>(v.z());
     }
 
     if (target_local_space.value) {

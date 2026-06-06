@@ -55,12 +55,12 @@ as_string(const std::u8string_view &string) {
 
 constexpr inline std::string
 as_string(const char *string) {
-    return string != nullptr ? std::string(string) : std::string();
+    return string != nullptr ? std::string(string) : std::string{};
 }
 
 constexpr inline std::string_view
 as_string_view(const char *string) {
-    return string != nullptr ? std::string_view(string) : std::string_view();
+    return string != nullptr ? std::string_view(string) : std::string_view{};
 }
 
 constexpr inline std::u8string

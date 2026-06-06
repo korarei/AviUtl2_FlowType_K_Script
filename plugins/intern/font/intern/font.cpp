@@ -32,29 +32,34 @@ FontData::init(IDWriteFontFileLoader *loader, const void *key, uint32_t size, ui
     if (face != nullptr)
         return;
 
-    if (FAILED(loader->CreateStreamFromKey(key, size, &stream)))
-        throw std::runtime_error("Failed to create font file stream");
+    try {
+        if (FAILED(loader->CreateStreamFromKey(key, size, &stream)))
+            throw std::runtime_error("Failed to create font file stream");
 
-    uint64_t file_size = 0ull;
+        uint64_t file_size = 0ull;
 
-    if (FAILED(stream->GetFileSize(&file_size)) || file_size == 0)
-        throw std::runtime_error("Failed to get font file size");
+        if (FAILED(stream->GetFileSize(&file_size)) || file_size == 0)
+            throw std::runtime_error("Failed to get font file size");
 
-    if (FAILED(stream->ReadFileFragment(&fragment, 0ull, file_size, &context)) || fragment == nullptr)
-        throw std::runtime_error("Failed to read font file fragment");
+        if (FAILED(stream->ReadFileFragment(&fragment, 0ull, file_size, &context)) || fragment == nullptr)
+            throw std::runtime_error("Failed to read font file fragment");
 
-    blob = HB_Blob(hb_blob_create(
-            static_cast<const char *>(fragment),
-            static_cast<uint32_t>(file_size),
-            HB_MEMORY_MODE_READONLY,
-            nullptr,
-            nullptr));
-    if (blob == nullptr)
-        throw std::runtime_error("Failed to create harfbuzz blob");
+        blob = HB_Blob(hb_blob_create(
+                static_cast<const char *>(fragment),
+                static_cast<uint32_t>(file_size),
+                HB_MEMORY_MODE_READONLY,
+                nullptr,
+                nullptr));
+        if (blob == nullptr)
+            throw std::runtime_error("Failed to create harfbuzz blob");
 
-    face = HB_Face(hb_face_create(blob.get(), index));
-    if (face == nullptr)
-        throw std::runtime_error("Failed to create harfbuzz face");
+        face = HB_Face(hb_face_create(blob.get(), index));
+        if (face == nullptr)
+            throw std::runtime_error("Failed to create harfbuzz face");
+    } catch (...) {
+        reset();
+        throw;
+    }
 }
 
 void

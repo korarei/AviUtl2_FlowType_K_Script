@@ -58,8 +58,10 @@ set_clipboard_text(const std::wstring &text) {
     if (!OpenClipboard(nullptr))
         return false;
 
-    if (!EmptyClipboard())
+    if (!EmptyClipboard()) {
+        CloseClipboard();
         return false;
+    }
 
     const size_t bytes = (text.size() + 1) * sizeof(wchar_t);
     HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, bytes);

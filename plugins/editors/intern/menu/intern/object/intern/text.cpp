@@ -3,7 +3,6 @@
 #include <cmath>
 #include <cstdint>
 #include <format>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -159,10 +158,16 @@ layout_text(const std::string &text, const std::string &name, double size, std::
 
     std::vector<std::vector<Eigen::Vector2d>> rows;
     Eigen::Vector2d line_origin(0.0, 0.0);
-    std::istringstream iss(text + "\n");
-    std::string line;
+    std::string_view remaining(text);
 
-    while (std::getline(iss, line)) {
+    while (!remaining.empty()) {
+        const auto nl = remaining.find('\n');
+        auto line = remaining.substr(0, nl);
+        remaining = nl != std::string_view::npos ? remaining.substr(nl + 1) : std::string_view{};
+
+        if (!line.empty() && line.back() == '\r')
+            line.remove_suffix(1);
+
         if (line.empty()) {
             if (direction == HB_DIRECTION_LTR)
                 line_origin.y() -= line_height;
@@ -176,7 +181,7 @@ layout_text(const std::string &text, const std::string &name, double size, std::
         row.reserve(line.size() / 2uz);
 
         hb_buffer_reset(buffer.get());
-        hb_buffer_add_utf8(buffer.get(), line.c_str(), -1, 0, -1);
+        hb_buffer_add_utf8(buffer.get(), line.data(), static_cast<int>(line.size()), 0, static_cast<int>(line.size()));
         hb_buffer_set_direction(buffer.get(), direction);
         hb_buffer_guess_segment_properties(buffer.get());
 
@@ -188,10 +193,11 @@ layout_text(const std::string &text, const std::string &name, double size, std::
         Eigen::Vector2d nominal(0.0, 0.0);
 
         for (uint32_t i = 0u; i < count; ++i) {
-            auto it = line.begin() + info[i].cluster;
+            auto it = line.data() + info[i].cluster;
+            const auto end = line.data() + line.size();
             utf8::utfchar32_t cp = 0;
             try {
-                cp = utf8::next(it, line.end());
+                cp = utf8::next(it, end);
             } catch (...) {
                 throw std::runtime_error("Character encoding is unsupported in the text");
             }
@@ -374,7 +380,7 @@ split_text(EDIT_SECTION *edit) {
 
     std::vector<Eigen::Vector2d> coords;
     try {
-        coords = layout_text(text, font, size, align);
+        coords = layout_text(text + '\n', font, size, align);
     } catch (const std::exception &e) {
         logger->error(logger, string::to_wstring(string::as_utf8(e.what())).c_str());
         return;
