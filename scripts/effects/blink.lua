@@ -4,6 +4,8 @@
 --information:Blink@${SCRIPT_NAME} v${PROJECT_VERSION} by ${PROJECT_AUTHOR}
 --label:${LABEL}
 
+--#define BASED_ON Whole=-2,Objects=-1,Characters=0,Characters Excluding Spaces=1,Words=2,Lines=3
+local based_on = 0 --select@based_on:Based On,${BASED_ON}
 local duration = 0.0 --track@duration:Duration,-10000,10000,8,0.001,---
 local steps = 2 --track@steps:Steps,2,128,2,1
 --group:Opacity,true
@@ -41,9 +43,10 @@ do
 
     local max, floor = math.max, math.floor
     local copybuffer, pixelshader = obj.copybuffer, obj.pixelshader
-    local LAYER = obj.layer
+    local ID, INDEX, NUM, LAYER = obj.effect_id, obj.index, obj.num, obj.layer
+    local FPS, TIME = obj.framerate, obj.time
 
-    duration = unit == 0 and duration / obj.framerate or duration
+    duration = unit == 0 and duration / FPS or duration
 
     opacity_min = opacity_min * 0.01
     opacity_max = opacity_max * 0.01
@@ -83,10 +86,110 @@ do
         return
     end
 
-    local t = (obj.time - (duration < 0.0 and obj.totaltime or 0.0)) / duration
+    local group
 
-    if t < 1.0 then
-        local hx, hy, hz, hw = hash4d(obj.index, obj.num, seed, obj.time * obj.framerate * 100.0)
+    if based_on > 0 then
+        local regex = obj.module("Regex@${PROJECT_NAME}")
+
+        group = function(mode, text)
+            local t = {}
+
+            local i, id, pattern
+            if mode == 1 then
+                i = -1
+                id = -1
+                pattern = [=[[^\s\v\x85\pZ]]=]
+            elseif mode == 2 then
+                i = 0
+                id = -2
+                pattern = [=[[\s\v\x85\pZ]]=]
+            else
+                i = 0
+                id = -3
+                pattern = "\\n"
+            end
+
+            for _, m in ipairs({ regex.mark(id, text, pattern) }) do
+                if m[1] then
+                    i = i + 1
+                end
+
+                if not m[2] then
+                    t[#t + 1] = max(i, 0)
+                end
+            end
+
+            return t
+        end
+    end
+
+    local i, n = INDEX, NUM
+
+    if NUM > 1 then
+        local content
+
+        if based_on >= 0 then
+            local text = obj.module("Text@${PROJECT_NAME}")
+            local utf8 = obj.module("UTF8@${PROJECT_NAME}")
+
+            local KEY_COUNT = "0fd2dd98-70e4-4c71-a1a5-042eecbfdbe0-" .. ID
+
+            local handle = text.is_text(LAYER, obj.getvalue("frame_s") + FPS * TIME)
+            if handle ~= nil then
+                content = text.content(handle):gsub("<.->", "")
+
+                local c
+                if INDEX == 0 then
+                    c = utf8.count(content, true)
+                    _G[KEY_COUNT] = c
+                else
+                    c = _G[KEY_COUNT]
+                end
+
+                if type(c) == "number" then
+                    if n % c == 0 then
+                        i = floor(i * c / n)
+                        n = c
+                    end
+                else
+                    print("@warn", "Shared count value is missing or corrupted")
+                end
+
+                if INDEX == NUM - 1 then
+                    _G[KEY_COUNT] = nil
+                end
+            end
+        end
+
+        if content ~= nil and based_on > 0 then
+            local KEY_GROUP = "23ac879f-fa88-47fe-9047-98c62eb012d2-" .. ID
+
+            local t
+            if INDEX == 0 then
+                t = group(based_on, content)
+                _G[KEY_GROUP] = t
+            else
+                t = _G[KEY_GROUP]
+            end
+
+            if type(t) == "table" and #t == n then
+                i = t[i + 1]
+                n = t[n] + 1
+            else
+                print("@warn", "Shared motion group table is missing or corrupted")
+            end
+
+            if INDEX == NUM - 1 then
+                _G[KEY_GROUP] = nil
+            end
+        elseif based_on == -2 then
+            i = 0
+            n = 1
+        end
+    end
+
+    if (TIME - (duration < 0.0 and obj.totaltime or 0.0)) / duration < 1.0 then
+        local hx, hy, hz, hw = hash4d(i, n, seed, FPS * TIME * 100.0)
 
         if should_blink_opacity then
             obj.alpha = lerp(opacity_min, opacity_max, floor(hx * steps) / (steps - 1))
@@ -144,7 +247,7 @@ do
 
                 if color_source == 0 then
                     if not obj.load("image", color_image) then
-                        if not obj.copybuffer("object", "cache:tmp") then
+                        if not copybuffer("object", "cache:tmp") then
                             error("Failed to copy buffer")
                         end
 
@@ -152,7 +255,7 @@ do
                     end
                 elseif color_source == 1 then
                     if not obj.load("layer", color_layer, true) then
-                        if not obj.copybuffer("object", "cache:tmp") then
+                        if not copybuffer("object", "cache:tmp") then
                             error("Failed to copy buffer")
                         end
 

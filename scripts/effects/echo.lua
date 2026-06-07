@@ -65,7 +65,7 @@ do
 
             if tint_source == 0 then
                 if not obj.load("image", tint_image) then
-                    if not obj.copybuffer("object", "cache:tmp") then
+                    if not copybuffer("object", "cache:tmp") then
                         error("Failed to copy buffer")
                     end
 
@@ -73,7 +73,7 @@ do
                 end
             elseif tint_source == 1 then
                 if not obj.load("layer", tint_layer, true) then
-                    if not obj.copybuffer("object", "cache:tmp") then
+                    if not copybuffer("object", "cache:tmp") then
                         error("Failed to copy buffer")
                     end
 

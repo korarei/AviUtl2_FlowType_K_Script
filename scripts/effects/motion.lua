@@ -233,7 +233,7 @@ do
 
         local group
 
-        do
+        if motion_based_on > 0 then
             local regex = obj.module("Regex@${PROJECT_NAME}")
 
             group = function(mode, text)
@@ -623,7 +623,7 @@ do
                     end
                 end
 
-                if content ~= nil and motion_based_on > 0 and getoption("multi_object") then
+                if content ~= nil and motion_based_on > 0 then
                     local KEY_GROUP = "a7d6bd98-24a1-480a-bf02-679a2c80c83d-" .. ID
 
                     local t

@@ -80,7 +80,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
   - Automatic: 自動
   - Manual: 手動 (中間点で表示タイミングを指定する)
 - Duration: 文字列全体のアニメーションが完了するまでの時間を指定．(正: 登場, 負: 退場)
-- Offset: 登場タイミングのズレを指定．
+- Offset: 登場タイミングのズレを指定
 
 - <details>
   <summary>Motion</summary>
@@ -560,6 +560,13 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
 #### パラメータ
 
+- Based On: 点滅を適用する単位を指定
+  - Whole: 全体
+  - Objects: 個別オブジェクト単位
+  - Characters: 文字単位
+  - Characters Excluding Spaces: 空白を除いた文字単位
+  - Words: 単語単位
+  - Lines: 行単位
 - Duration: アニメーションの時間を指定
 - Steps: 点滅の段階数 (ステップ数) を指定
 
@@ -664,6 +671,8 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 #### FlowType_K\\値を反転
 
 選択した区間の値を反転する． (トラックバーは符号の反転，チェックボックスはON/OFF反転)
+
+計算結果が範囲外になった場合は AviUtl2 の機能により範囲内に丸められる．
 
 - 現在区間
 - 全ての区間
