@@ -71,6 +71,9 @@ local blink_scale_max = 100.0 --track@blink_scale_max:Blink::Scale::Maximum,-100
 --separator:Edge Detection
 local blink_edge_intensity = 100.0 --track@blink_edge_intensity:Blink::Edge Detection::Intensity,0,1000,100,0.01
 local blink_edge_threshold = -100.0 --track@blink_edge_threshold:Blink::Edge Detection::Threshold,-100,100,-100,0.01
+--separator:Characters
+local blink_characters_pool = "" --string@blink_characters_pool:Blink::Characters::Pool,
+local blink_characters_scale = 100.0 --track@blink_characters_scale:Blink::Characters::Scale,0,1000,100,0.01
 --group:Tint,false
 local tint_source = 0 --select@tint_source:Tint::Source,Image=0,Layer=1
 local tint_image = "" --file@tint_image:Tint::Image,""
@@ -185,7 +188,13 @@ do
     local motion, mask
 
     do
+        local text = obj.module("Text@${PROJECT_NAME}")
+        local utf8 = obj.module("UTF8@${PROJECT_NAME}")
+
         local CACHE_LUT = "cache:a09d04ba-6a95-4940-b8f4-41f9d7483817-" .. ID
+
+        local frame = getvalue("frame_s") + FPS * TIME
+        local handle = text.is_text(LAYER, frame)
 
         if should_load_lut then
             local ok, e = pcall(function()
@@ -400,12 +409,50 @@ do
                 local should_blink_scale = blink_scale_max - blink_scale_min > eps
                 local should_edge_detect = blink_edge_threshold > -100.0 + eps
 
+                local alignment, chars
+
+                if blink_characters_pool ~= "" then
+                    local props
+                    if handle ~= nil then
+                        props = { text.property(handle, frame) }
+                    else
+                        props = { max(obj.w, obj.h), 0.0, 0.0, 0.0, "Yu Gothic UI", 0xffffff, 0, 0, 4, false, false }
+                    end
+
+                    obj.setfont(
+                        props[5],
+                        props[1] * blink_characters_scale * 0.01,
+                        props[8],
+                        props[6],
+                        props[7],
+                        props[10],
+                        props[11],
+                        props[2],
+                        props[3]
+                    )
+
+                    alignment = props[9]
+
+                    chars = utf8.split(blink_characters_pool, true)
+                end
+
                 apply_blink = function(i, n, t)
-                    local hx, hy, hz, _ = hash4d(i, n, seed + 1, t * FPS * 100.0)
+                    if blink_characters_pool ~= "" then
+                        local hx, _, _, _ = hash4d(i, n, seed + 1, t * FPS * 100.0, 1, #chars)
+
+                        local xform = {}
+                        copy_xform(xform, obj)
+
+                        obj.load("text", chars[hx], 0.0, 0.0, alignment)
+
+                        copy_xform(obj, xform)
+                    end
+
+                    local hx, hy, hz, _ = hash4d(i, n, seed + 2, t * FPS * 100.0)
 
                     if should_blink_opacity then
-                        obj.alpha =
-                            lerp(blink_opacity_min, blink_opacity_max, floor(hx * blink_steps) / (blink_steps - 1))
+                        local r = floor(hx * blink_steps) / (blink_steps - 1)
+                        obj.alpha = lerp(blink_opacity_min, blink_opacity_max, r)
                     end
 
                     if should_blink_scale then
@@ -549,17 +596,12 @@ do
                 local content
 
                 if motion_based_on >= 0 then
-                    local text = obj.module("Text@${PROJECT_NAME}")
-
                     local KEY_COUNT = "58172aa6-e0d5-4503-aa68-984427e8f04f-" .. ID
 
-                    local handle = text.is_text(LAYER, getvalue("frame_s") + FPS * TIME)
                     if handle ~= nil then
-                        content = text.content(handle):gsub("<.->", "")
-
                         local c
                         if INDEX == 0 then
-                            local utf8 = obj.module("UTF8@${PROJECT_NAME}")
+                            content = text.content(handle):gsub("<.->", "")
 
                             c = utf8.count(content, true)
                             _G[KEY_COUNT] = c
@@ -582,7 +624,7 @@ do
                     end
                 end
 
-                if content ~= nil and motion_based_on > 0 then
+                if handle ~= nil and motion_based_on > 0 then
                     local KEY_GROUP = "a7d6bd98-24a1-480a-bf02-679a2c80c83d-" .. ID
 
                     local t

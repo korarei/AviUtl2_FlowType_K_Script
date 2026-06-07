@@ -17,6 +17,9 @@ local scale_max = 100.0 --track@scale_max:Scale::Maximum,-10000,10000,100,0.01
 --group:Edge Detection,false
 local edge_intensity = 100.0 --track@edge_intensity:Edge Detection::Intensity,0,1000,100,0.01
 local edge_threshold = -100.0 --track@edge_threshold:Edge Detection::Threshold,-100,100,-100,0.01
+--group:Characters,false
+local characters_pool = "" --string@characters_pool:Characters::Pool,
+local characters_scale = 100.0 --track@characters_scale:Characters::Scale,0,1000,100,0.01
 --group:Color,false
 local color_source = 0 --select@color_source:Color::Source,Image=0,Layer=1
 local color_image = "" --file@color_image:Color::Image,""
@@ -36,6 +39,8 @@ do
     local utils = require("utilities")
     local lerp, copy_xform, stop = utils.lerp, utils.copy_xform, utils.stop
 
+    local text = obj.module("Text@${PROJECT_NAME}")
+    local utf8 = obj.module("UTF8@${PROJECT_NAME}")
     local hash = obj.module("Hash@${PROJECT_NAME}")
     local hash4d = hash.hash4d
 
@@ -86,23 +91,21 @@ do
         return
     end
 
+    local frame = obj.getvalue("frame_s") + FPS * TIME
+    local handle = text.is_text(LAYER, frame)
+
     local i, n = INDEX, NUM
 
     if NUM > 1 then
         local content
 
         if based_on >= 0 then
-            local text = obj.module("Text@${PROJECT_NAME}")
-
             local KEY_COUNT = "0fd2dd98-70e4-4c71-a1a5-042eecbfdbe0-" .. ID
 
-            local handle = text.is_text(LAYER, obj.getvalue("frame_s") + FPS * TIME)
             if handle ~= nil then
-                content = text.content(handle):gsub("<.->", "")
-
                 local c
                 if INDEX == 0 then
-                    local utf8 = obj.module("UTF8@${PROJECT_NAME}")
+                    content = text.content(handle):gsub("<.->", "")
 
                     c = utf8.count(content, true)
                     _G[KEY_COUNT] = c
@@ -125,7 +128,7 @@ do
             end
         end
 
-        if content ~= nil and based_on > 0 then
+        if handle ~= nil and based_on > 0 then
             local KEY_GROUP = "23ac879f-fa88-47fe-9047-98c62eb012d2-" .. ID
 
             local t
@@ -181,7 +184,39 @@ do
     end
 
     if (TIME - (duration < 0.0 and obj.totaltime or 0.0)) / duration < 1.0 then
-        local hx, hy, hz, hw = hash4d(i, n, seed, FPS * TIME * 100.0)
+        if characters_pool ~= "" then
+            local props
+            if handle ~= nil then
+                props = { text.property(handle, frame) }
+            else
+                props = { max(obj.w, obj.h), 0.0, 0.0, 0.0, "Yu Gothic UI", 0xffffff, 0, 0, 4, false, false }
+            end
+
+            obj.setfont(
+                props[5],
+                props[1] * characters_scale * 0.01,
+                props[8],
+                props[6],
+                props[7],
+                props[10],
+                props[11],
+                props[2],
+                props[3]
+            )
+
+            local chars = utf8.split(characters_pool, true)
+
+            local hx, _, _, _ = hash4d(i, n, seed, FPS * TIME * 100.0, 1, #chars)
+
+            local xform = {}
+            copy_xform(xform, obj)
+
+            obj.load("text", chars[hx], 0.0, 0.0, props[9])
+
+            copy_xform(obj, xform)
+        end
+
+        local hx, hy, hz, hw = hash4d(i, n, seed + 1, FPS * TIME * 100.0)
 
         if should_blink_opacity then
             obj.alpha = lerp(opacity_min, opacity_max, floor(hx * steps) / (steps - 1))

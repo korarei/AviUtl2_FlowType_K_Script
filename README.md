@@ -159,6 +159,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
   - Blink::Opacity::Minimum / Maximum: 点滅時の不透明度の最小値と最大値を指定
   - Blink::Scale::Minimum / Maximum: 点滅時のスケールの最小値と最大値を指定
   - Blink::Edge Detection::Intensity / Threshold: エッジ抽出の強度としきい値を指定
+  - Blink::Characters::Pool / Scale: 置換する文字を指定
 
   </details>
 
@@ -593,6 +594,14 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
   - Edge Detection::Intensity: エッジ抽出の強度を指定
   - Edge Detection::Threshold: エッジ抽出のしきい値を指定
+
+  </details>
+
+- <details>
+  <summary>Characters</summary>
+
+  - Characters::Pool: 置換する文字を指定
+  - Characters::Scale: 文字のスケールを指定
 
   </details>
 

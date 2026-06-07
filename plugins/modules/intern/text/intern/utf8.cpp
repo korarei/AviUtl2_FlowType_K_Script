@@ -1,5 +1,8 @@
 #include "utf8.hpp"
 
+#include <string>
+#include <vector>
+
 #include <utf8.h>
 
 #include <module2.h>
@@ -53,8 +56,57 @@ count(SCRIPT_MODULE_PARAM *param) {
     param->push_result_int(count);
 }
 
+void
+split(SCRIPT_MODULE_PARAM *param) {
+    const int n = param->get_param_num();
+    if (n != 1 && n != 2) {
+        param->set_error("Function call has wrong argument count");
+        return;
+    }
+
+    const auto text = string::as_string_view(param->get_param_string(0));
+    const auto should_pass_ctrl = param->get_param_boolean(1);
+
+    if (text.empty()) {
+        const char *dummy[] = {""};
+        param->push_result_array_string(dummy, 0);
+        return;
+    }
+
+    std::vector<std::string> chars;
+    chars.reserve(text.size() / 2uz);
+
+    auto it = text.begin();
+    while (it != text.end()) {
+        const auto st = it;
+        utf8::utfchar32_t cp = 0;
+
+        try {
+            cp = utf8::next(it, text.end());
+        } catch (...) {
+            logger->error(logger, L"Character encoding is unsupported in the text");
+            return;
+        }
+
+        if (should_pass_ctrl && ((cp <= 0x1f) || (cp == 0x7f) || (cp >= 0x80 && cp <= 0x9f)))
+            continue;
+
+        chars.emplace_back(st, it);
+    }
+
+    auto to_cstrs = [](const std::vector<std::string> &v) {
+        std::vector<const char *> p;
+        p.reserve(v.size());
+        for (auto &s : v) p.push_back(s.c_str());
+        return p;
+    };
+
+    param->push_result_array_string(to_cstrs(chars).data(), static_cast<int>(chars.size()));
+}
+
 constinit SCRIPT_MODULE_FUNCTION functions[] = {
         {L"count", count},
+        {L"split", split},
         {nullptr, nullptr},
 };
 

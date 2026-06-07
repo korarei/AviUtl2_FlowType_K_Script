@@ -406,6 +406,8 @@ split_text(EDIT_SECTION *edit) {
     }
 
     std::vector<std::string> chars;
+    chars.reserve(text.size() / 2uz);
+
     auto it = text.begin();
     while (it != text.end()) {
         const auto st = it;
