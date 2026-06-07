@@ -86,43 +86,6 @@ do
         return
     end
 
-    local group
-
-    if based_on > 0 then
-        local regex = obj.module("Regex@${PROJECT_NAME}")
-
-        group = function(mode, text)
-            local t = {}
-
-            local i, id, pattern
-            if mode == 1 then
-                i = -1
-                id = -1
-                pattern = [=[[^\s\v\x85\pZ]]=]
-            elseif mode == 2 then
-                i = 0
-                id = -2
-                pattern = [=[[\s\v\x85\pZ]]=]
-            else
-                i = 0
-                id = -3
-                pattern = "\\n"
-            end
-
-            for _, m in ipairs({ regex.mark(id, text, pattern) }) do
-                if m[1] then
-                    i = i + 1
-                end
-
-                if not m[2] then
-                    t[#t + 1] = max(i, 0)
-                end
-            end
-
-            return t
-        end
-    end
-
     local i, n = INDEX, NUM
 
     if NUM > 1 then
@@ -130,7 +93,6 @@ do
 
         if based_on >= 0 then
             local text = obj.module("Text@${PROJECT_NAME}")
-            local utf8 = obj.module("UTF8@${PROJECT_NAME}")
 
             local KEY_COUNT = "0fd2dd98-70e4-4c71-a1a5-042eecbfdbe0-" .. ID
 
@@ -140,6 +102,8 @@ do
 
                 local c
                 if INDEX == 0 then
+                    local utf8 = obj.module("UTF8@${PROJECT_NAME}")
+
                     c = utf8.count(content, true)
                     _G[KEY_COUNT] = c
                 else
@@ -166,7 +130,35 @@ do
 
             local t
             if INDEX == 0 then
-                t = group(based_on, content)
+                local regex = obj.module("Regex@${PROJECT_NAME}")
+
+                t = {}
+
+                local j, id, pattern
+                if based_on == 1 then
+                    j = -1
+                    id = -1
+                    pattern = [=[[^\s\v\x85\pZ]]=]
+                elseif based_on == 2 then
+                    j = 0
+                    id = -2
+                    pattern = [=[[\s\v\x85\pZ]]=]
+                else
+                    j = 0
+                    id = -3
+                    pattern = "\\n"
+                end
+
+                for _, m in ipairs({ regex.mark(id, content, pattern) }) do
+                    if m[1] then
+                        j = j + 1
+                    end
+
+                    if not m[2] then
+                        t[#t + 1] = max(j, 0)
+                    end
+                end
+
                 _G[KEY_GROUP] = t
             else
                 t = _G[KEY_GROUP]

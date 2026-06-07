@@ -59,23 +59,6 @@ do
         return
     end
 
-    local function permute(n)
-        randomseed(seed)
-
-        local t = {}
-
-        for i = 1, n do
-            t[i] = i - 1
-        end
-
-        for i = n, 1, -1 do
-            local j = random(1, i)
-            t[i], t[j] = t[j], t[i]
-        end
-
-        return t
-    end
-
     local w, h = obj.w, obj.h
 
     if NUM > 1 then
@@ -132,7 +115,21 @@ do
     local xform = {}
     copy_xform(xform, obj)
 
-    local order = (time_offset_order == 2) and permute(count) or nil
+    local order
+    if time_offset_order == 2 then
+        randomseed(seed)
+
+        order = {}
+
+        for i = 1, count do
+            order[i] = i - 1
+        end
+
+        for i = count, 1, -1 do
+            local j = random(1, i)
+            order[i], order[j] = order[j], order[i]
+        end
+    end
 
     local i = -1
     obj.multiobject(count, function()

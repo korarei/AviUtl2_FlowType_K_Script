@@ -231,60 +231,6 @@ do
             end
         end
 
-        local group
-
-        if motion_based_on > 0 then
-            local regex = obj.module("Regex@${PROJECT_NAME}")
-
-            group = function(mode, text)
-                local t = {}
-
-                local i, id, pattern
-                if mode == 1 then
-                    i = -1
-                    id = -1
-                    pattern = [=[[^\s\v\x85\pZ]]=]
-                elseif mode == 2 then
-                    i = 0
-                    id = -2
-                    pattern = [=[[\s\v\x85\pZ]]=]
-                else
-                    i = 0
-                    id = -3
-                    pattern = "\\n"
-                end
-
-                for _, m in ipairs({ regex.mark(id, text, pattern) }) do
-                    if m[1] then
-                        i = i + 1
-                    end
-
-                    if not m[2] then
-                        t[#t + 1] = max(i, 0)
-                    end
-                end
-
-                return t
-            end
-        end
-
-        local function permute(n)
-            randomseed(seed)
-
-            local t = {}
-
-            for i = 1, n do
-                t[i] = i - 1
-            end
-
-            for i = n, 1, -1 do
-                local j = random(1, i)
-                t[i], t[j] = t[j], t[i]
-            end
-
-            return t
-        end
-
         local get_time
 
         do
@@ -399,92 +345,97 @@ do
             local hash = obj.module("Hash@${PROJECT_NAME}")
             local hash4d = hash.hash4d
 
-            local should_blink_opacity = blink_opacity_max - blink_opacity_min > eps
-            local should_blink_scale = blink_scale_max - blink_scale_min > eps
-            local should_edge_detect = blink_edge_threshold > -100.0 + eps
+            if lyric_distance > eps then
+                apply_lyric = function(i, n, t, w)
+                    local hx, hy, _, _ = hash4d(i, n, seed)
 
-            apply_lyric = function(i, n, t, w)
-                local hx, hy, _, _ = hash4d(i, n, seed)
+                    local r = lerp(lyric_distance, lyric_distance * hx, lyric_jitter) * w
+                    local s = lerp(lyric_stretch, lyric_stretch * hx, lyric_jitter) * abs(w)
 
-                local r = lerp(lyric_distance, lyric_distance * hx, lyric_jitter) * w
-                local s = lerp(lyric_stretch, lyric_stretch * hx, lyric_jitter) * abs(w)
+                    local d = 0.0
+                    if lyric_shape == 0 then
+                        d = 2.0 * math.pi / lyric_divisions
+                    elseif lyric_divisions ~= 1 then
+                        d = lyric_sweep / (lyric_divisions - 1)
+                    end
 
-                local d = 0.0
-                if lyric_shape == 0 then
-                    d = 2.0 * math.pi / lyric_divisions
-                elseif lyric_divisions ~= 1 then
-                    d = lyric_sweep / (lyric_divisions - 1)
-                end
+                    local angle = lyric_angle
+                    if lyric_selection == 0 then
+                        angle = angle + d * floor(hy * lyric_divisions)
+                    elseif lyric_selection == 1 then
+                        angle = angle + d * i
+                    elseif lyric_selection == 2 then
+                        angle = angle - d * i
+                    end
 
-                local angle = lyric_angle
-                if lyric_selection == 0 then
-                    angle = angle + d * floor(hy * lyric_divisions)
-                elseif lyric_selection == 1 then
-                    angle = angle + d * i
-                elseif lyric_selection == 2 then
-                    angle = angle - d * i
-                end
+                    local x, y = cos(angle), sin(angle)
+                    obj.ox = obj.ox + r * x
+                    obj.oy = obj.oy + r * y
+                    obj.sx = obj.sx * (2.0 ^ (s * abs(x)))
+                    obj.sy = obj.sy * (2.0 ^ (s * abs(y)))
 
-                local x, y = cos(angle), sin(angle)
-                obj.ox = obj.ox + r * x
-                obj.oy = obj.oy + r * y
-                obj.sx = obj.sx * (2.0 ^ (s * abs(x)))
-                obj.sy = obj.sy * (2.0 ^ (s * abs(y)))
-
-                if t < spf then
-                    local p = 2.0 ^ lyric_peak
-                    obj.sx = obj.sx * p
-                    obj.sy = obj.sy * p
-                elseif lyric_should_overshoot and t < 2.0 * spf then
-                    local p = 2.0 ^ (-lyric_peak * 0.5)
-                    obj.sx = obj.sx * p
-                    obj.sy = obj.sy * p
+                    if t < spf then
+                        local p = 2.0 ^ lyric_peak
+                        obj.sx = obj.sx * p
+                        obj.sy = obj.sy * p
+                    elseif lyric_should_overshoot and t < 2.0 * spf then
+                        local p = 2.0 ^ (-lyric_peak * 0.5)
+                        obj.sx = obj.sx * p
+                        obj.sy = obj.sy * p
+                    end
                 end
             end
 
-            apply_blink = function(i, n, t)
-                local hx, hy, hz, _ = hash4d(i, n, seed + 1, t * FPS * 100.0)
+            if blink_duration > eps then
+                local should_blink_opacity = blink_opacity_max - blink_opacity_min > eps
+                local should_blink_scale = blink_scale_max - blink_scale_min > eps
+                local should_edge_detect = blink_edge_threshold > -100.0 + eps
 
-                if should_blink_opacity then
-                    obj.alpha = lerp(blink_opacity_min, blink_opacity_max, floor(hx * blink_steps) / (blink_steps - 1))
-                end
+                apply_blink = function(i, n, t)
+                    local hx, hy, hz, _ = hash4d(i, n, seed + 1, t * FPS * 100.0)
 
-                if should_blink_scale then
-                    local r = floor(hy * blink_steps) / (blink_steps - 1)
-                    local scale = lerp(blink_scale_min, blink_scale_max, r)
-                    obj.sx = scale
-                    obj.sy = scale
-                    obj.sz = scale
-                end
+                    if should_blink_opacity then
+                        obj.alpha =
+                            lerp(blink_opacity_min, blink_opacity_max, floor(hx * blink_steps) / (blink_steps - 1))
+                    end
 
-                if should_edge_detect and hz < 0.5 then
-                    local ok, e = pcall(function()
-                        if not copybuffer("cache:tmp", "object") then
-                            error("Failed to copy buffer")
+                    if should_blink_scale then
+                        local r = floor(hy * blink_steps) / (blink_steps - 1)
+                        local scale = lerp(blink_scale_min, blink_scale_max, r)
+                        obj.sx = scale
+                        obj.sy = scale
+                        obj.sz = scale
+                    end
+
+                    if should_edge_detect and hz < 0.5 then
+                        local ok, e = pcall(function()
+                            if not copybuffer("cache:tmp", "object") then
+                                error("Failed to copy buffer")
+                            end
+
+                            effect(
+                                "エッジ抽出",
+                                "強さ",
+                                blink_edge_intensity,
+                                "しきい値",
+                                blink_edge_threshold,
+                                "輝度エッジを抽出",
+                                0,
+                                "透明度エッジを抽出",
+                                1
+                            )
+
+                            pixelshader("alpha_mask", "cache:tmp", "object", { 0.0 }, "mask")
+
+                            if not copybuffer("object", "cache:tmp") then
+                                error("Failed to copy buffer")
+                            end
+                        end)
+
+                        if not ok then
+                            stop(e)
+                            return
                         end
-
-                        effect(
-                            "エッジ抽出",
-                            "強さ",
-                            blink_edge_intensity,
-                            "しきい値",
-                            blink_edge_threshold,
-                            "輝度エッジを抽出",
-                            0,
-                            "透明度エッジを抽出",
-                            1
-                        )
-
-                        pixelshader("alpha_mask", "cache:tmp", "object", { 0.0 }, "mask")
-
-                        if not copybuffer("object", "cache:tmp") then
-                            error("Failed to copy buffer")
-                        end
-                    end)
-
-                    if not ok then
-                        stop(e)
-                        return
                     end
                 end
             end
@@ -493,12 +444,12 @@ do
         local apply_fx
 
         if effect_params ~= "" then
-            local toml = obj.module("Toml@${PROJECT_NAME}")
-
             local KEY_FX = "99c01c07-d684-4b55-a6ca-7cd4bb9e390c-" .. ID
 
             local data
             if INDEX == 0 then
+                local toml = obj.module("Toml@${PROJECT_NAME}")
+
                 data = { toml.parse("motion::effect", effect_params) }
                 _G[KEY_FX] = data
             else
@@ -579,8 +530,6 @@ do
                 end
             else
                 print("@warn", "Shared FX data table is missing or corrupted")
-
-                apply_fx = function() end
             end
         end
 
@@ -592,7 +541,6 @@ do
 
                 if motion_based_on >= 0 then
                     local text = obj.module("Text@${PROJECT_NAME}")
-                    local utf8 = obj.module("UTF8@${PROJECT_NAME}")
 
                     local KEY_COUNT = "58172aa6-e0d5-4503-aa68-984427e8f04f-" .. ID
 
@@ -602,6 +550,8 @@ do
 
                         local c
                         if INDEX == 0 then
+                            local utf8 = obj.module("UTF8@${PROJECT_NAME}")
+
                             c = utf8.count(content, true)
                             _G[KEY_COUNT] = c
                         else
@@ -628,7 +578,35 @@ do
 
                     local t
                     if INDEX == 0 then
-                        t = group(motion_based_on, content)
+                        local regex = obj.module("Regex@${PROJECT_NAME}")
+
+                        t = {}
+
+                        local j, id, pattern
+                        if motion_based_on == 1 then
+                            j = -1
+                            id = -1
+                            pattern = [=[[^\s\v\x85\pZ]]=]
+                        elseif motion_based_on == 2 then
+                            j = 0
+                            id = -2
+                            pattern = [=[[\s\v\x85\pZ]]=]
+                        else
+                            j = 0
+                            id = -3
+                            pattern = "\\n"
+                        end
+
+                        for _, m in ipairs({ regex.mark(id, content, pattern) }) do
+                            if m[1] then
+                                j = j + 1
+                            end
+
+                            if not m[2] then
+                                t[#t + 1] = max(j, 0)
+                            end
+                        end
+
                         _G[KEY_GROUP] = t
                     else
                         t = _G[KEY_GROUP]
@@ -657,7 +635,19 @@ do
 
                 local t
                 if INDEX == 0 then
-                    t = permute(n)
+                    randomseed(seed)
+
+                    t = {}
+
+                    for j = 1, n do
+                        t[j] = j - 1
+                    end
+
+                    for j = n, 1, -1 do
+                        local k = random(1, j)
+                        t[j], t[k] = t[k], t[j]
+                    end
+
                     _G[KEY_ORDER] = t
                 else
                     t = _G[KEY_ORDER]
@@ -721,11 +711,11 @@ do
 
                 apply_xform(w)
 
-                if lyric_distance > eps then
+                if apply_lyric ~= nil then
                     apply_lyric(i, n, t, w)
                 end
 
-                if blink_duration > eps and t >= 0.0 and t < blink_duration then
+                if apply_blink ~= nil and t >= 0.0 and t < blink_duration then
                     apply_blink(i, n, t)
                 end
 
@@ -740,7 +730,7 @@ do
                     )
                 end
 
-                if effect_params ~= "" then
+                if apply_fx ~= nil then
                     apply_fx(w)
                 end
 
@@ -761,7 +751,7 @@ do
             end
         end
 
-        do
+        if motion_should_mask then
             local W, H = obj.w, obj.h
             local texel = 1.0 / H
             local aspect = W * texel

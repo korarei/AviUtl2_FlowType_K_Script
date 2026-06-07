@@ -66,7 +66,6 @@ do
     local lerp = utils.lerp
 
     local text = obj.module("Text@${PROJECT_NAME}")
-    local utf8 = obj.module("UTF8@${PROJECT_NAME}")
 
     local ID = obj.effect_id
     local KEY_COUNT = "8973f111-5db5-4890-907d-52539fe55570-" .. ID
@@ -94,12 +93,12 @@ do
     local apply_fx
 
     if effect_params ~= "" then
-        local toml = obj.module("Toml@${PROJECT_NAME}")
-
         local KEY_FX = "c109b1fa-e8e9-4eda-b474-9561558c14ca-" .. ID
 
         local data
         if INDEX == 0 then
+            local toml = obj.module("Toml@${PROJECT_NAME}")
+
             data = { toml.parse("motion::effect", effect_params) }
             _G[KEY_FX] = data
         else
@@ -186,6 +185,8 @@ do
 
     local c
     if INDEX == 0 then
+        local utf8 = obj.module("UTF8@${PROJECT_NAME}")
+
         c = utf8.count(content, true)
         _G[KEY_COUNT] = c
     else
@@ -207,12 +208,12 @@ do
 
     local offset = { 0.0, 0.0 }
     if kerning_mode == 1 then
-        local kerning = obj.module("Kerning@${PROJECT_NAME}")
-
         local KEY_KERNING = "308494ea-bd57-4fbf-9573-458df515646c-" .. ID
 
         local t
         if INDEX == 0 then
+            local kerning = obj.module("Kerning@${PROJECT_NAME}")
+
             local props = { text.property(handle, frame) }
             t = { kerning.shift(obj.id, content, props[1], props[5], props[9]) }
             _G[KEY_KERNING] = t
@@ -233,12 +234,12 @@ do
 
     local is_matched = true
     if filter_regex_pattern ~= "" then
-        local regex = obj.module("Regex@${PROJECT_NAME}")
-
         local KEY_REGEX = "db5638b7-59ab-4c53-8471-772fc3b03366-" .. ID
 
         local t = {}
         if INDEX == 0 then
+            local regex = obj.module("Regex@${PROJECT_NAME}")
+
             for _, m in ipairs({ regex.mark(ID, content, filter_regex_pattern, filter_capture_group) }) do
                 if not m[2] then
                     t[#t + 1] = m[1]
