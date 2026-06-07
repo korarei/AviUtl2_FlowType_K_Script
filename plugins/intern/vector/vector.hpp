@@ -2,11 +2,16 @@
 
 #include <array>
 #include <numbers>
-#include <vector>
+#include <span>
 
 #include <Eigen/Dense>
 
 namespace flow::vector {
+enum class Unit {
+    Degree,
+    Radian,
+};
+
 [[nodiscard]] inline constexpr double
 to_rad(double deg) noexcept {
     constexpr double f = std::numbers::pi / 180.0;
@@ -20,8 +25,8 @@ to_deg(double rad) noexcept {
 }
 
 void
-rotate(double t, int mode, double w, double x, double y, double z, std::vector<Eigen::Vector3d> &vectors);
+rotate(double t, int mode, Unit unit, double w, double x, double y, double z, std::span<Eigen::Vector3d> vectors);
 
 [[nodiscard]] std::array<double, 3uz>
-to_euler(double t, int mode, double w, double x, double y, double z);
+to_euler(double t, int mode, Unit unit, double w, double x, double y, double z);
 }  // namespace flow::vector

@@ -11,6 +11,10 @@
 
 #include <intern/vector/vector.hpp>
 
+#ifndef VERSION
+#define VERSION L"0.1.0"
+#endif
+
 namespace {
 namespace vector = flow::vector;
 
@@ -19,18 +23,18 @@ constinit LOG_HANDLE *logger = nullptr;
 auto group_pivot = FILTER_ITEM_GROUP(L"Pivot Point", true);
 auto pivot_x = FILTER_ITEM_TRACK(L"Pivot::X", 0.0, -100000.0, 100000.0, 0.01);
 auto pivot_y = FILTER_ITEM_TRACK(L"Pivot::Y", 0.0, -100000.0, 100000.0, 0.01);
-FILTER_ITEM_TRACK *pivot[] = {&pivot_x, &pivot_y, nullptr};
-auto trackgroup_pivot = FILTER_ITEM_TRACK_GROUP(L"Group::Pivot", pivot);
+FILTER_ITEM_TRACK *pivot_list[] = {&pivot_x, &pivot_y, nullptr};
+auto trackgroup_pivot = FILTER_ITEM_TRACK_GROUP(L"Group::Pivot", pivot_list);
 auto group_position = FILTER_ITEM_GROUP(L"Position", true);
 auto position_x = FILTER_ITEM_TRACK(L"Position::X", 0.0, -100000.0, 100000.0, 0.01);
 auto position_y = FILTER_ITEM_TRACK(L"Position::Y", 0.0, -100000.0, 100000.0, 0.01);
-FILTER_ITEM_TRACK *position[] = {&position_x, &position_y, nullptr};
-auto trackgroup_position = FILTER_ITEM_TRACK_GROUP(L"Group::Position", position);
+FILTER_ITEM_TRACK *position_list[] = {&position_x, &position_y, nullptr};
+auto trackgroup_position = FILTER_ITEM_TRACK_GROUP(L"Group::Position", position_list);
 auto group_scale = FILTER_ITEM_GROUP(L"Scale", true);
 auto scale_x = FILTER_ITEM_TRACK(L"Scale::X", 100.0, -10000.0, 10000.0, 0.01);
 auto scale_y = FILTER_ITEM_TRACK(L"Scale::Y", 100.0, -10000.0, 10000.0, 0.01);
-FILTER_ITEM_TRACK *scale[] = {&scale_x, &scale_y, nullptr};
-auto trackgroup_scale = FILTER_ITEM_TRACK_GROUP(L"Group::Scale", scale);
+FILTER_ITEM_TRACK *scale_list[] = {&scale_x, &scale_y, nullptr};
+auto trackgroup_scale = FILTER_ITEM_TRACK_GROUP(L"Group::Scale", scale_list);
 auto group_skew = FILTER_ITEM_GROUP(L"Skew", true);
 auto skew_angle = FILTER_ITEM_TRACK(L"Skew::Angle", 0.0, -70.0, 70.0, 0.01);
 auto skew_axis = FILTER_ITEM_TRACK(L"Skew::Axis", 0.0, -3600.0, 3600.0, 0.01);
@@ -63,7 +67,7 @@ deform(FILTER_PROC_VIDEO *video) {
     t.linear() *= shear;
     t.rotate(axis);
 
-    t.scale(Eigen::Vector2f(scale_x.value * 0.01f, scale_y.value * 0.01f));
+    t.scale(Eigen::Vector2f(static_cast<float>(scale_x.value) * 0.01f, static_cast<float>(scale_y.value) * 0.01f));
     t.translate(Eigen::Vector2f(-static_cast<float>(pivot_x.value), -static_cast<float>(pivot_y.value)));
 
     const float cx = video->object->width * 0.5f, cy = video->object->height * 0.5f;
@@ -88,11 +92,12 @@ deform(FILTER_PROC_VIDEO *video) {
         return false;
     }
 
-    std::array<VERTEX_TEXTURE, 4> vertices{};
-    vertices[0] = {verts(0, 0), verts(1, 0), 0.0f, 0.0f, 0.0f, alpha};
-    vertices[1] = {verts(0, 1), verts(1, 1), 0.0f, 1.0f, 0.0f, alpha};
-    vertices[2] = {verts(0, 2), verts(1, 2), 0.0f, 1.0f, 1.0f, alpha};
-    vertices[3] = {verts(0, 3), verts(1, 3), 0.0f, 0.0f, 1.0f, alpha};
+    std::array<VERTEX_TEXTURE, 4> vertices{
+            VERTEX_TEXTURE{verts(0, 0), verts(1, 0), 0.0f, 0.0f, 0.0f, alpha},
+            VERTEX_TEXTURE{verts(0, 1), verts(1, 1), 0.0f, 1.0f, 0.0f, alpha},
+            VERTEX_TEXTURE{verts(0, 2), verts(1, 2), 0.0f, 1.0f, 1.0f, alpha},
+            VERTEX_TEXTURE{verts(0, 3), verts(1, 3), 0.0f, 0.0f, 1.0f, alpha},
+    };
 
     if (!video->draw_poly_to_resource(L"resource:result", VERTEX_TYPE::QUAD_TEXTURE, vertices.data(), 4, L"object")) {
         logger->error(logger, L"Failed to draw image");

@@ -7,7 +7,7 @@
 local threshold = 0.0 --track@threshold:Threshold,0,100,0,0.01
 local index = -1 --track@index:Index,-1,100,-1,1
 --group:Anchor,true
-local anchor_target = 0 --select@anchor_target:Anchor::Target,Position=0,Pivot Point=1
+local anchor_target = 0 --select@anchor_target:Anchor::Target=1,Pivot Point=0,Position=1
 local anchor_should_overwrite = false --checksection@anchor_should_overwrite:Anchor::Overwrite,false
 --group:Sort,false
 --separator:Order
@@ -44,10 +44,10 @@ end
 do
     --#include "utilities.lua"
     local utils = require("utilities")
-    local copy_xform = utils.copy_xform
+    local clamp, copy_xform, stop = utils.clamp, utils.copy_xform, utils.stop
 
     local island = obj.module("Island@${PROJECT_NAME}")
-    local scan, fetch, reset = island.scan, island.fetch, island.reset
+    local scan, fetch = island.scan, island.fetch
 
     local ID = obj.effect_id
     local CACHE_IMAGE = "cache:cf20d0bc-2ad4-4633-ab0f-2b349128aa13-" .. ID
@@ -55,15 +55,15 @@ do
     local CACHE_ALPHA_MASK = "cache:9edded2f-c484-42b7-8bb8-032b0febed5e-" .. ID
 
     local max, random, randomseed = math.max, math.random, math.randomseed
-    local copybuffer, clearbuffer, pixelshader = obj.copybuffer, obj.clearbuffer, obj.pixelshader
-    local LAYER = obj.layer
+    local getinfo, copybuffer, clearbuffer, pixelshader = obj.getinfo, obj.copybuffer, obj.clearbuffer, obj.pixelshader
+    local LAYER, TIME, TOTALTIME = obj.layer, obj.time, obj.totaltime
 
     threshold = math.floor(threshold * 2.55)
+
     tint_layer = layer_reference == 0 and max(tint_layer, 0) or max(LAYER + tint_layer, 0)
     time_offset_interval = unit == 0 and time_offset_interval / obj.framerate or time_offset_interval
 
     local should_use_custom_order = #sort_order_custom_order > 0
-    local should_return_time = math.abs(time_offset_interval) > 1.0e-4
 
     local should_load_lut = false
     if tint_source == 0 then
@@ -91,9 +91,9 @@ do
     do
         local x, y, sign
         if anchor_target == 0 then
-            x, y, sign = "ox", "oy", 1.0
-        elseif anchor_target == 1 then
             x, y, sign = "cx", "cy", -1.0
+        elseif anchor_target == 1 then
+            x, y, sign = "ox", "oy", 1.0
         end
 
         set_anchor = function(dx, dy)
@@ -111,7 +111,7 @@ do
 
         local ok, e = pcall(function()
             if not copybuffer("cache:tmp", "object") then
-                error("Buffer copy operation failed")
+                error("Failed to copy buffer")
             end
 
             local xform = {}
@@ -119,37 +119,35 @@ do
 
             if tint_source == 0 then
                 if not obj.load("image", tint_image) then
-                    if not obj.copybuffer("object", "cache:tmp") then
-                        error("Buffer copy operation failed")
+                    if not copybuffer("object", "cache:tmp") then
+                        error("Failed to copy buffer")
                     end
-                    copy_xform(obj, xform)
 
-                    error("Image file could not be loaded")
+                    error("Failed to load image file")
                 end
             elseif tint_source == 1 then
                 if not obj.load("layer", tint_layer, true) then
-                    if not obj.copybuffer("object", "cache:tmp") then
-                        error("Buffer copy operation failed")
+                    if not copybuffer("object", "cache:tmp") then
+                        error("Failed to copy buffer")
                     end
-                    copy_xform(obj, xform)
 
-                    error("Layer data could not be retrieved")
+                    error("Failed to load layer data")
                 end
             end
 
             if not copybuffer(CACHE_LUT, "object") then
-                error("Buffer copy operation failed")
+                error("Failed to copy buffer")
             end
 
             if not copybuffer("object", "cache:tmp") then
-                error("Buffer copy operation failed")
+                error("Failed to copy buffer")
             end
 
             copy_xform(obj, xform)
         end)
 
         if not ok then
-            print("@error", e)
+            stop(e)
             return
         end
 
@@ -167,40 +165,13 @@ do
         end
     end
 
-    local function permute(n)
-        randomseed(seed)
-
-        local t = {}
-
-        for i = 1, n do
-            t[i] = i - 1
-        end
-
-        for i = n, 1, -1 do
-            local j = random(1, i)
-            t[i], t[j] = t[j], t[i]
-        end
-
-        return t
-    end
-
-    local function apply_time_offset(i, n, order)
-        if time_offset_order == 0 then
-            return time_offset_interval * i
-        elseif time_offset_order == 1 then
-            return time_offset_interval * (n - i - 1)
-        elseif time_offset_order == 2 then
-            return time_offset_interval * order[i + 1]
-        end
-    end
-
     if not copybuffer(CACHE_COLOR_MASK, "object") then
-        print("@error", "Buffer copy operation failed")
+        stop("Failed to copy buffer")
         return
     end
 
     if not copybuffer(CACHE_IMAGE, "object") then
-        print("@error", "Buffer copy operation failed")
+        stop("Failed to copy buffer")
         return
     end
 
@@ -233,19 +204,19 @@ do
 
         if anchor_target == 0 then
             if anchor_should_overwrite then
-                obj.ox = dx
-                obj.oy = dy
-            else
-                obj.ox = obj.ox + dx
-                obj.oy = obj.oy + dy
-            end
-        elseif anchor_target == 1 then
-            if anchor_should_overwrite then
                 obj.cx = -dx
                 obj.cy = -dy
             else
                 obj.cx = obj.cx - dx
                 obj.cy = obj.cy - dy
+            end
+        elseif anchor_target == 1 then
+            if anchor_should_overwrite then
+                obj.ox = dx
+                obj.oy = dy
+            else
+                obj.ox = obj.ox + dx
+                obj.oy = obj.oy + dy
             end
         end
 
@@ -253,7 +224,6 @@ do
             apply_tint(index, n)
         end
 
-        reset(ID)
         return
     end
 
@@ -261,9 +231,9 @@ do
     copy_xform(xform, obj)
     if anchor_should_overwrite then
         if anchor_target == 0 then
-            xform.ox, xform.oy = 0.0, 0.0
-        elseif anchor_target == 1 then
             xform.cx, xform.cy = 0.0, 0.0
+        elseif anchor_target == 1 then
+            xform.ox, xform.oy = 0.0, 0.0
         end
     end
 
@@ -272,15 +242,39 @@ do
         clearbuffer(CACHE_ALPHA_MASK, W, H)
     end
 
-    local order = (should_return_time and time_offset_order == 2) and permute(n) or nil
+    local order
+    if time_offset_order == 2 then
+        randomseed(seed)
+
+        order = {}
+
+        for i = 1, n do
+            order[i] = i - 1
+        end
+
+        for i = n, 1, -1 do
+            local j = random(1, i)
+            order[i], order[j] = order[j], order[i]
+        end
+    end
 
     local i = -1
     obj.multiobject(n, function()
         i = i + 1
 
+        local j
+        if time_offset_order == 0 then
+            j = i
+        elseif time_offset_order == 1 then
+            j = n - i - 1
+        elseif time_offset_order == 2 then
+            ---@cast order integer[]
+            j = order[i + 1]
+        end
+
         if should_use_custom_order then
             if i < n - 1 then
-                local j = sort_order_custom_order[i + 1]
+                j = sort_order_custom_order[j + 1]
                 local x, y, w, h, dx, dy = fetch(ID, j)
                 clearbuffer("object", w, h)
                 pixelshader("color_mask", "object", { CACHE_IMAGE, CACHE_COLOR_MASK }, { x, y, j })
@@ -289,25 +283,25 @@ do
                 set_anchor(dx, dy)
             else
                 if not copybuffer("object", CACHE_IMAGE) then
-                    print("@error", "Buffer copy operation failed")
+                    stop("Failed to copy buffer")
                     return
                 end
                 pixelshader("alpha_mask@Motion@${SCRIPT_NAME}", "object", CACHE_ALPHA_MASK, { 1.0 }, "mask")
                 copy_xform(obj, xform)
             end
         else
-            local x, y, w, h, dx, dy = fetch(ID, i)
+            local x, y, w, h, dx, dy = fetch(ID, j)
             clearbuffer("object", w, h)
-            pixelshader("color_mask", "object", { CACHE_IMAGE, CACHE_COLOR_MASK }, { x, y, i })
+            pixelshader("color_mask", "object", { CACHE_IMAGE, CACHE_COLOR_MASK }, { x, y, j })
             copy_xform(obj, xform)
             set_anchor(dx, dy)
         end
 
         if should_load_lut then
-            apply_tint(i, n)
+            apply_tint(j, n)
         end
 
-        if should_highlight_order then
+        if should_highlight_order and not getinfo("saving") then
             pixelshader(
                 "tint@Motion@${SCRIPT_NAME}",
                 "object",
@@ -316,10 +310,6 @@ do
             )
         end
 
-        if should_return_time then
-            return apply_time_offset(i, n, order)
-        end
+        return clamp(TIME + time_offset_interval * i, 0.0, TOTALTIME) - TIME
     end)
-
-    reset(ID)
 end

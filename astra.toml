@@ -1,11 +1,11 @@
 [astra]
-requires-astra = ">=0.6.3"
+requires-astra = ">=0.6.4"
 
 [project]
 name = "FlowType_K"
 version = "0.1.0"
 author = "Korarei"
-requires-aviutl2 = "2004700"
+requires-aviutl2 = "2004900"
 
 [build]
 [[build.plugins]]
@@ -32,16 +32,16 @@ cmake --build "$dst"
 artifacts = ["${BUILD_DIRECTORY}/Debug/*.aux2"]
 
 [[build.scripts]]
-id = "typography"
+id = "effect"
 prefix = "@"
 suffix = ".anm2"
-variables = { SOURCE = "./scripts/typography", LABEL = "Text" }
+variables = { SOURCE = "./scripts/effects", LABEL = "Text" }
 include-directories = ["${SOURCE}/shaders"]
 sources = [
     { file = "${SOURCE}/motion.lua" },
     { file = "${SOURCE}/island.lua" },
     { file = "${SOURCE}/kerning.lua" },
-    { file = "${SOURCE}/trim.lua" },
+    { file = "${SOURCE}/repeat.lua" },
     { file = "${SOURCE}/blink.lua" },
     { file = "${SOURCE}/echo.lua" },
 ]
@@ -61,6 +61,7 @@ description = """
 - Text\\Motion@FlowType_K: 全自動リリックモーション
 - Text\\Island@FlowType_K: パーツ分解
 - Text\\Kerning@FlowType_K: 全自動カーニング
+- Text\\Repeat@FlowType_K: 高機能画像ループ
 - Text\\Trim@FlowType_K: 余白除去
 - Text\\Deform@FlowType_K: 変形
 - Text\\Align@FlowType_K: 整列
@@ -74,13 +75,17 @@ description = """
 
 プロパティメニュー (オブジェクト設定項目を右クリック)
 
-- FlowType_K\\値を揃える\\全ての区間: 現在値を全ての区間にコピー
-- FlowType_K\\値を揃える\\以前の区間: 現在値を以前の区間にコピー
-- FlowType_K\\値を揃える\\以降の区間: 現在値を以降の区間にコピー
+- FlowType_K\\現在値で上書き\\全ての区間: 現在値を全ての区間にコピー
+- FlowType_K\\現在値で上書き\\以前の区間: 現在値を以前の区間にコピー
+- FlowType_K\\現在値で上書き\\以降の区間: 現在値を以降の区間にコピー
 - FlowType_K\\値を反転\\現在の区間: 現在値を反転 (符号，ON/Off)
 - FlowType_K\\値を反転\\全ての区間: 全ての区間の値を反転 (符号，ON/Off)
 - FlowType_K\\値を反転\\以前の区間: 以前の区間の値を反転 (符号，ON/Off)
 - FlowType_K\\値を反転\\以降の区間: 以降の区間の値を反転 (符号，ON/Off)
+- FlowType_K\\プロパティ名をコピー\\{プロパティ名}: プロパティ名をクリップボードへコピー
+- FlowType_K\\プロパティ名をコピー\\{エフェクト名}.{プロパティ名}: プロパティ名をクリップボードへコピー
+- FlowType_K\\プロパティ名をコピー\\{レイヤー名}.{エフェクト名}.{プロパティ名}: プロパティ名をクリップボードへコピー
+- FlowType_K\\参照式をコピー: 参照式をクリップボードへコピー
 
 - FlowType_K\\エフェクトをコピー\\エイリアス形式 (INI 形式): エフェクトをエイリアス形式でクリップボードへコピー
 - FlowType_K\\エフェクトをコピー\\FlowType_K 形式 (TOML 形式): エフェクトを FlowType_K 形式でクリップボードへコピー
@@ -92,10 +97,10 @@ files = ["plugin:core"]
 
 [[release.contents.extensions]]
 directory = "Script/${PROJECT_NAME}"
-files = ["script:typography"]
+files = ["script:effect"]
 
 [[release.contents.extensions]]
-directory = "Preset/"
+directory = "Preset"
 files = ["./presets/*.preset"]
 
 [[release.contents.documents]]

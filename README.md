@@ -15,6 +15,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 - Text\\Motion@FlowType_K: 全自動リリックモーション
 - Text\\Island@FlowType_K: パーツ分解
 - Text\\Kerning@FlowType_K: 全自動カーニング
+- Text\\Repeat@FlowType_K: 高機能画像ループ
 - Text\\Trim@FlowType_K: 余白除去
 - Text\\Deform@FlowType_K: 変形
 - Text\\Align@FlowType_K: 整列
@@ -28,13 +29,17 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
 プロパティメニュー (オブジェクト設定項目を右クリック)
 
-- FlowType_K\\値を揃える\\全ての区間: 現在値を全ての区間にコピー
-- FlowType_K\\値を揃える\\以前の区間: 現在値を以前の区間にコピー
-- FlowType_K\\値を揃える\\以降の区間: 現在値を以降の区間にコピー
+- FlowType_K\\現在値で上書き\\全ての区間: 現在値を全ての区間にコピー
+- FlowType_K\\現在値で上書き\\以前の区間: 現在値を以前の区間にコピー
+- FlowType_K\\現在値で上書き\\以降の区間: 現在値を以降の区間にコピー
 - FlowType_K\\値を反転\\現在の区間: 現在値を反転 (符号，ON/Off)
 - FlowType_K\\値を反転\\全ての区間: 全ての区間の値を反転 (符号，ON/Off)
 - FlowType_K\\値を反転\\以前の区間: 以前の区間の値を反転 (符号，ON/Off)
 - FlowType_K\\値を反転\\以降の区間: 以降の区間の値を反転 (符号，ON/Off)
+- FlowType_K\\プロパティ名をコピー\\{プロパティ名}: プロパティ名をクリップボードへコピー
+- FlowType_K\\プロパティ名をコピー\\{エフェクト名}.{プロパティ名}: プロパティ名をクリップボードへコピー
+- FlowType_K\\プロパティ名をコピー\\{レイヤー名}.{エフェクト名}.{プロパティ名}: プロパティ名をクリップボードへコピー
+- FlowType_K\\参照式をコピー: 参照式をクリップボードへコピー
 
 - FlowType_K\\エフェクトをコピー\\エイリアス形式 (INI 形式): エフェクトをエイリアス形式でクリップボードへコピー
 - FlowType_K\\エフェクトをコピー\\FlowType_K 形式 (TOML 形式): エフェクトを FlowType_K 形式でクリップボードへコピー
@@ -76,6 +81,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
   - Automatic: 自動
   - Manual: 手動 (中間点で表示タイミングを指定する)
 - Duration: 文字列全体のアニメーションが完了するまでの時間を指定．(正: 登場, 負: 退場)
+- Offset: 登場タイミングのズレを指定
 
 - <details>
   <summary>Motion</summary>
@@ -149,10 +155,10 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
   要素の点滅 (ブリンク) 効果やエッジ抽出を設定する．
 
   - Blink::Duration: 点滅アニメーションの時間を指定
-  - Blink::Steps: 点滅の段階数 (ステップ数) を指定
-  - Blink::Opacity::Minimum / Maximum: 点滅時の不透明度の最小値と最大値を指定
-  - Blink::Scale::Minimum / Maximum: 点滅時のスケールの最小値と最大値を指定
+  - Blink::Opacity::Steps / Minimum / Maximum: 点滅時の不透明度のステップ数，最小値，最大値を指定
+  - Blink::Scale::Steps / Minimum / Maximum: 点滅時のスケールのステップ数，最小値，最大値を指定
   - Blink::Edge Detection::Intensity / Threshold: エッジ抽出の強度としきい値を指定
+  - Blink::Characters::Pool / Scale: 置換する文字を指定
 
   </details>
 
@@ -316,6 +322,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
   - Filter::Regex Pattern: 対象とする正規表現パターンを指定
   - Filter::Capture Group: 正規表現のキャプチャグループ番号を指定
+  - Filter::Limit Effects Below: 後続エフェクトを制限
 
   </details>
 
@@ -343,9 +350,65 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
   </details>
 
 - <details>
+  <summary>Effect</summary>
+
+  各要素に対してToml形式で指定したエフェクトをかける．
+
+  - Effect::Parameters: エフェクトのパラメータをToml形式で記述する
+
+- <details>
   <summary>Additional Options</summary>
 
   - Influence: 影響度合いを指定 (0〜100)
+
+  </details>
+
+### Repeat@FlowType_K
+
+初期ラベル: `Text`
+
+各要素を繰り返し配置するスクリプト．
+
+#### パラメータ
+
+- <details>
+  <summary>Layout</summary>
+
+  - Layout::Count::X: X方向の繰り返し回数を指定
+  - Layout::Count::Y: Y方向の繰り返し回数を指定
+  - Layout::Padding::X: X方向の間隔を指定
+  - Layout::Padding::Y: Y方向の間隔を指定
+
+  </details>
+
+- <details>
+  <summary>Position Offset</summary>
+
+  - Position Offset::Angle: ズレの角度 (ズレ量) を指定
+  - Position Offset::Axis: ズレの軸方向を指定
+
+  </details>
+
+- <details>
+  <summary>Time Offset</summary>
+
+  - Time Offset::Interval: 時間オフセットの間隔を指定
+  - Time Offset::Orientation: 時間オフセットの方向を指定
+    - Column: 列順 (横方向)
+    - Row: 行順 (縦方向)
+  - Time Offset::Order: 時間オフセットの適用順序
+    - Forward: 順方向
+    - Reverse: 逆方向
+    - Random: ランダム
+
+  </details>
+
+- <details>
+  <summary>Additional Options</summary>
+
+  - Unit: 時間や間隔の単位を指定
+  - Seed: ランダムシード値を指定
+  - Highlight Order: ソート順をハイライト表示するか指定
 
   </details>
 
@@ -499,12 +562,19 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
 #### パラメータ
 
+- Based On: 点滅を適用する単位を指定
+  - Whole: 全体
+  - Objects: 個別オブジェクト単位
+  - Characters: 文字単位
+  - Characters Excluding Spaces: 空白を除いた文字単位
+  - Words: 単語単位
+  - Lines: 行単位
 - Duration: アニメーションの時間を指定
-- Steps: 点滅の段階数 (ステップ数) を指定
 
 - <details>
   <summary>Opacity</summary>
 
+  - Opacity::Steps: 点滅の段階数 (ステップ数) を指定
   - Opacity::Minimum: 不透明度の最小値を指定
   - Opacity::Maximum: 不透明度の最大値を指定
 
@@ -513,6 +583,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 - <details>
   <summary>Scale</summary>
 
+  - Scale::Steps: 点滅の段階数 (ステップ数) を指定
   - Scale::Minimum: スケールの最小値を指定
   - Scale::Maximum: スケールの最大値を指定
 
@@ -527,8 +598,17 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
   </details>
 
 - <details>
+  <summary>Characters</summary>
+
+  - Characters::Pool: 置換する文字を指定
+  - Characters::Scale: 文字のスケールを指定
+
+  </details>
+
+- <details>
   <summary>Color</summary>
 
+  - Color::Steps: 点滅の段階数 (ステップ数) を指定
   - Color::Source: 色付けのソースを指定
     - Image: 画像ファイル
     - Layer: 特定のレイヤー
@@ -592,7 +672,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
 ### プロパティメニュー
 
-#### FlowType_K\\値を揃える
+#### FlowType_K\\現在値で上書き
 
 現在区間の値を選択した区間の値へコピーする．
 
@@ -604,10 +684,24 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
 選択した区間の値を反転する． (トラックバーは符号の反転，チェックボックスはON/OFF反転)
 
+計算結果が範囲外になった場合は AviUtl2 の機能により範囲内に丸められる．
+
 - 現在区間
 - 全ての区間
 - 以前の区間
 - 以降の区間
+
+#### FlowType_K\\プロパティ名をコピー
+
+プロパティ名を以下の形式でクリップボードへコピーする．(参照式用)
+
+- {プロパティ名}
+- {エフェクト名}.{プロパティ名}
+- {レイヤー名}.{エフェクト名}.{プロパティ名}
+
+#### FlowType_K\\参照式をコピー
+
+参照式をクリップボードへコピーする．
 
 #### FlowType_K\\エフェクトをコピー
 

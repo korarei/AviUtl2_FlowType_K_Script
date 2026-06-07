@@ -7,5 +7,5 @@
 
 namespace flow::editor::menu::property {
 void
-init(HOST_APP_TABLE *host, LOG_HANDLE *logger);
+init(HOST_APP_TABLE *host, LOG_HANDLE *logger, EDIT_HANDLE *editor);
 }  // namespace flow::editor::menu::property

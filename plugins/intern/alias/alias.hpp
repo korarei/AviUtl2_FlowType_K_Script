@@ -10,6 +10,8 @@ public:
     public:
         explicit Effect(std::string_view alias);
 
+        [[nodiscard]] static std::string unescape(std::string_view s);
+
         [[nodiscard]] std::string_view get(const std::string &key, std::string_view def = "") const;
         [[nodiscard]] std::string_view front(const std::string &key, std::string_view def = "") const;
         [[nodiscard]] std::string_view alias() const noexcept { return data; }

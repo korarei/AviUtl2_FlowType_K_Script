@@ -1,4 +1,4 @@
-local lerp, clamp, copy_xform
+local lerp, clamp, copy_xform, stop
 
 do
     local max, min = math.max, math.min
@@ -18,6 +18,11 @@ do
         dst.sx, dst.sy, dst.sz = src.sx, src.sy, src.sz
         dst.alpha = src.alpha
     end
+
+    stop = function(e)
+        print("@error", e)
+        obj.load("text", "")
+    end
 end
 
 if ... then
@@ -25,5 +30,6 @@ if ... then
         lerp = lerp,
         clamp = clamp,
         copy_xform = copy_xform,
+        stop = stop,
     }
 end

@@ -1,7 +1,14 @@
 {
     "dependencies": [
         "eigen3",
-        "harfbuzz",
+        {
+            "name": "freetype",
+            "default-features": false
+        },
+        {
+            "name": "harfbuzz",
+            "default-features": false
+        },
         "re2",
         "tomlplusplus",
         "utfcpp"

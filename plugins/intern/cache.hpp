@@ -23,8 +23,8 @@ public:
     public:
         explicit LockedEntry(std::shared_ptr<Entry> e) : entry(std::move(e)), lock(entry->mtx) {}
 
-        T *operator->() const noexcept { return &entry->cache; }
-        T &operator*() const noexcept { return entry->cache; }
+        [[nodiscard]] constexpr T *operator->() const noexcept { return &entry->cache; }
+        [[nodiscard]] constexpr T &operator*() const noexcept { return entry->cache; }
 
     private:
         std::shared_ptr<Entry> entry;
@@ -80,6 +80,10 @@ public:
     }
 
 private:
+    std::shared_mutex mtx;
+    std::unordered_map<Name, std::weak_ptr<Entry>> name_to_cache;
+    std::unordered_map<int64_t, std::shared_ptr<Entry>> id_to_cache;
+
     constexpr void release(int64_t id) {
         if (auto node = id_to_cache.extract(id)) {
             const auto &entry = node.mapped();
@@ -94,9 +98,5 @@ private:
         if (auto node = name_to_cache.extract(name))
             std::erase_if(id_to_cache, [&](const auto &e) { return e.second != nullptr && e.second->name == name; });
     }
-
-    std::shared_mutex mtx;
-    std::unordered_map<Name, std::weak_ptr<Entry>> name_to_cache;
-    std::unordered_map<int64_t, std::shared_ptr<Entry>> id_to_cache;
 };
 }  // namespace flow::cache

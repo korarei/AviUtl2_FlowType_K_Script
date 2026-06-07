@@ -22,16 +22,22 @@ to_rotation_matrix(int mode, const std::array<double, 3> &angle) noexcept {
 
 namespace flow::vector {
 void
-rotate(double t, int mode, double w, double x, double y, double z, std::vector<Eigen::Vector3d> &vectors) {
+rotate(double t, int mode, Unit unit, double w, double x, double y, double z, std::span<Eigen::Vector3d> vectors) {
     if (mode == 0) {
         const auto q = q0.slerp(std::abs(t), Eigen::Quaterniond(w, x, y, z).normalized());
 
         for (auto &v : vectors) v = q * v;
     } else if (mode == 1) {
+        if (unit == Unit::Degree)
+            w = to_rad(w);
+
         const Eigen::AngleAxisd aa(w * t, Eigen::Vector3d(x, y, z).normalized());
 
         for (auto &v : vectors) v = aa * v;
     } else if (mode >= 5 && mode <= 21) {
+        if (unit == Unit::Degree)
+            x = to_rad(x), y = to_rad(y), z = to_rad(z);
+
         const auto rm = to_rotation_matrix(mode, {x * t, y * t, z * t});
 
         for (auto &v : vectors) v = rm * v;
@@ -41,21 +47,34 @@ rotate(double t, int mode, double w, double x, double y, double z, std::vector<E
 }
 
 std::array<double, 3uz>
-to_euler(double t, int mode, double w, double x, double y, double z) {
+to_euler(double t, int mode, Unit unit, double w, double x, double y, double z) {
+    std::array<double, 3uz> result;
+
     if (mode == 0) {
         const auto q = q0.slerp(std::abs(t), Eigen::Quaterniond(w, x, y, z).normalized());
         const Eigen::Vector3d euler = q.toRotationMatrix().canonicalEulerAngles(0, 1, 2);
-        return {euler.x(), euler.y(), euler.z()};
+        result = {euler.x(), euler.y(), euler.z()};
     } else if (mode == 1) {
+        if (unit == Unit::Degree)
+            w = to_rad(w);
+
         const Eigen::AngleAxisd aa(w * t, Eigen::Vector3d(x, y, z).normalized());
         const Eigen::Vector3d euler = aa.toRotationMatrix().canonicalEulerAngles(0, 1, 2);
-        return {euler.x(), euler.y(), euler.z()};
+        result = {euler.x(), euler.y(), euler.z()};
     } else if (mode >= 5 && mode <= 21) {
+        if (unit == Unit::Degree)
+            x = to_rad(x), y = to_rad(y), z = to_rad(z);
+
         const auto rm = to_rotation_matrix(mode, {x * t, y * t, z * t});
         const Eigen::Vector3d euler = rm.canonicalEulerAngles(0, 1, 2);
-        return {euler.x(), euler.y(), euler.z()};
+        result = {euler.x(), euler.y(), euler.z()};
     } else {
         throw std::runtime_error("Selected rotation mode is unsupported");
     }
+
+    if (unit == Unit::Degree)
+        result[0] = to_deg(result[0]), result[1] = to_deg(result[1]), result[2] = to_deg(result[2]);
+
+    return result;
 }
 }  // namespace flow::vector

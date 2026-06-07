@@ -1,9 +1,8 @@
-#include "../kerning.hpp"
+#include "kerning.hpp"
 
 #include <cstdint>
-#include <memory>
-#include <sstream>
 #include <string>
+#include <string_view>
 
 #include <utf8.h>
 #include <Eigen/Dense>
@@ -13,17 +12,18 @@
 #include <intern/font/font.hpp>
 #include <intern/string.hpp>
 
+#ifndef VERSION
+#define VERSION L"0.1.0"
+#endif
+
 namespace {
 namespace string = flow::string;
+
 using HB_Font = flow::font::HB_Font;
 using HB_Buffer = flow::font::HB_Buffer;
 using FontCache = flow::font::FontCache;
-using Cache = flow::cache::Cache<HB_Font, std::string>;
 
 constinit LOG_HANDLE *logger = nullptr;
-
-Cache fonts;
-thread_local HB_Buffer buffer;
 
 constexpr void
 shift(SCRIPT_MODULE_PARAM *param) {
@@ -45,9 +45,9 @@ shift(SCRIPT_MODULE_PARAM *param) {
 
     const int64_t id = static_cast<int64_t>(param->get_param_double(0));
     const std::string text = string::as_string(param->get_param_string(1));
-    const double size = param->get_param_double(2);
+    const auto size = param->get_param_double(2);
     const std::string name = string::as_string(param->get_param_string(3));
-    const std::string_view align = n > 4 ? string::as_string_view(param->get_param_string(4)) : "";
+    const auto alignment = param->get_param_int(4);
 
     if (text.empty())
         return;
@@ -57,12 +57,14 @@ shift(SCRIPT_MODULE_PARAM *param) {
         return;
     }
 
-    const auto direction = align.starts_with("縦書") ? HB_DIRECTION_TTB : HB_DIRECTION_LTR;
+    const auto direction = alignment >= 9 ? HB_DIRECTION_TTB : HB_DIRECTION_LTR;
 
-    hb_face_t *face = nullptr;
+    HB_Font font = nullptr;
     try {
-        if (!FontCache::load(face, id, name)) {
-            logger->warn(logger, L"Font file not found and using fallback");
+        font = FontCache::load(id, name);
+
+        if (font == nullptr) {
+            logger->warn(logger, L"Font file not found");
 
             auto it = text.begin();
             while (it != text.end()) {
@@ -89,67 +91,115 @@ shift(SCRIPT_MODULE_PARAM *param) {
         return;
     }
 
-    {
-        auto entry = fonts.fetch(id, name);
+    hb_font_set_scale(font.get(), static_cast<int>(size * 64.0), static_cast<int>(size * 64.0));
 
-        if (*entry == nullptr)
-            *entry = HB_Font(hb_font_create(face));
+    HB_Buffer buffer(hb_buffer_create());
 
-        auto *font = entry->get();
-        hb_font_set_scale(font, static_cast<int>(size * 64.0), static_cast<int>(size * 64.0));
+    std::string_view remaining(text);
 
-        if (buffer == nullptr)
-            buffer = HB_Buffer(hb_buffer_create());
+    while (!remaining.empty()) {
+        const auto nl = remaining.find('\n');
+        auto line = remaining.substr(0, nl);
+        remaining = nl != std::string_view::npos ? remaining.substr(nl + 1) : std::string_view{};
 
-        std::istringstream iss(text);
-        std::string line;
+        if (!line.empty() && line.back() == '\r')
+            line.remove_suffix(1uz);
 
-        while (std::getline(iss, line)) {
-            if (line.empty())
+        if (line.empty())
+            continue;
+
+        std::vector<Eigen::Vector2d> row;
+        row.reserve(line.size());
+
+        hb_buffer_reset(buffer.get());
+        hb_buffer_add_utf8(buffer.get(), line.data(), static_cast<int>(line.size()), 0, static_cast<int>(line.size()));
+        hb_buffer_set_direction(buffer.get(), direction);
+        hb_buffer_guess_segment_properties(buffer.get());
+
+        hb_shape(font.get(), buffer.get(), features, std::size(features));
+
+        uint32_t count;
+        const hb_glyph_info_t *info = hb_buffer_get_glyph_infos(buffer.get(), &count);
+        const hb_glyph_position_t *pos = hb_buffer_get_glyph_positions(buffer.get(), nullptr);
+
+        Eigen::Vector2d nominal(0.0, 0.0);
+        Eigen::Vector2d actual(0.0, 0.0);
+
+        for (uint32_t i = 0u; i < count; ++i) {
+            auto it = line.data() + info[i].cluster;
+            const auto end = line.data() + line.size();
+
+            utf8::utfchar32_t cp = 0;
+            try {
+                cp = utf8::next(it, end);
+            } catch (...) {
+                param->set_error("Character encoding is unsupported in the text");
+                return;
+            }
+
+            if ((cp <= 0x1f) || (cp == 0x7f) || (cp >= 0x80 && cp <= 0x9f))
                 continue;
 
-            hb_buffer_reset(buffer.get());
-            hb_buffer_add_utf8(buffer.get(), line.c_str(), -1, 0, -1);
-            hb_buffer_set_direction(buffer.get(), direction);
-            hb_buffer_guess_segment_properties(buffer.get());
+            Eigen::Vector2<hb_position_t> origin(0, 0);
+            hb_font_add_glyph_origin_for_direction(font.get(), info[i].codepoint, direction, &origin.x(), &origin.y());
+            const Eigen::Vector2d offset((pos[i].x_offset + origin.x()) / 64.0, -(pos[i].y_offset + origin.y()) / 64.0);
 
-            hb_shape(font, buffer.get(), features, std::size(features));
+            row.emplace_back(actual - nominal + offset);
 
-            uint32_t count;
-            const hb_glyph_info_t *info = hb_buffer_get_glyph_infos(buffer.get(), &count);
-            const hb_glyph_position_t *pos = hb_buffer_get_glyph_positions(buffer.get(), nullptr);
+            if (direction == HB_DIRECTION_LTR)
+                nominal.x() += hb_font_get_glyph_h_advance(font.get(), info[i].codepoint) / 64.0;
+            else
+                nominal.y() -= hb_font_get_glyph_v_advance(font.get(), info[i].codepoint) / 64.0;
 
-            Eigen::Vector2d nominal(0.0, 0.0);
-            Eigen::Vector2d actual(0.0, 0.0);
+            actual.x() += pos[i].x_advance / 64.0;
+            actual.y() -= pos[i].y_advance / 64.0;
+        }
 
-            for (uint32_t i = 0u; i < count; ++i) {
-                auto it = line.begin() + info[i].cluster;
-                utf8::utfchar32_t cp = 0;
-                try {
-                    cp = utf8::next(it, line.end());
-                } catch (...) {
-                    param->set_error("Character encoding is unsupported in the text");
-                    return;
+        if (!row.empty()) {
+            switch (alignment) {
+                case 1:
+                case 4:
+                case 7: {
+                    const auto origin = row.back().x() * 0.5;
+                    for (auto &p : row) {
+                        p.x() -= origin;
+                        param->push_result_array_double(p.data(), 2);
+                    }
+                    break;
                 }
-
-                if ((cp <= 0x1f) || (cp == 0x7f) || (cp >= 0x80 && cp <= 0x9f))
-                    continue;
-
-                Eigen::Vector2<hb_position_t> origin(0, 0);
-                hb_font_add_glyph_origin_for_direction(font, info[i].codepoint, direction, &origin.x(), &origin.y());
-                const Eigen::Vector2d offset(
-                        (pos[i].x_offset + origin.x()) / 64.0, -(pos[i].y_offset + origin.y()) / 64.0);
-
-                Eigen::Vector2d result = actual - nominal + offset;
-                param->push_result_array_double(result.data(), 2);
-
-                if (direction == HB_DIRECTION_LTR)
-                    nominal.x() += hb_font_get_glyph_h_advance(font, info[i].codepoint) / 64.0;
-                else
-                    nominal.y() -= hb_font_get_glyph_v_advance(font, info[i].codepoint) / 64.0;
-
-                actual.x() += pos[i].x_advance / 64.0;
-                actual.y() -= pos[i].y_advance / 64.0;
+                case 2:
+                case 5:
+                case 8: {
+                    const auto &origin = row.back().x();
+                    for (auto &p : row) {
+                        p.x() -= origin;
+                        param->push_result_array_double(p.data(), 2);
+                    }
+                    break;
+                }
+                case 10:
+                case 13:
+                case 16: {
+                    const auto origin = row.back().y() * 0.5;
+                    for (auto &p : row) {
+                        p.y() -= origin;
+                        param->push_result_array_double(p.data(), 2);
+                    }
+                    break;
+                }
+                case 11:
+                case 14:
+                case 17: {
+                    const auto &origin = row.back().y();
+                    for (auto &p : row) {
+                        p.y() -= origin;
+                        param->push_result_array_double(p.data(), 2);
+                    }
+                    break;
+                }
+                default:
+                    for (auto &p : row) param->push_result_array_double(p.data(), 2);
+                    break;
             }
         }
     }
@@ -172,11 +222,5 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *handle) {
     logger = handle;
 
     host->register_script_module_name(&info, L"Kerning@FlowType_K");
-    host->register_clear_cache_handler([]([[maybe_unused]] EDIT_SECTION *edit) { fonts.reset(); });
-}
-
-void
-deinit() {
-    fonts.reset();
 }
 }  // namespace flow::module::text::kerning

@@ -55,12 +55,12 @@ as_string(const std::u8string_view &string) {
 
 constexpr inline std::string
 as_string(const char *string) {
-    return string != nullptr ? std::string(string) : std::string();
+    return string != nullptr ? std::string(string) : std::string{};
 }
 
 constexpr inline std::string_view
 as_string_view(const char *string) {
-    return string != nullptr ? std::string_view(string) : std::string_view();
+    return string != nullptr ? std::string_view(string) : std::string_view{};
 }
 
 constexpr inline std::u8string
@@ -77,10 +77,10 @@ to_number(std::string_view s, double &v) noexcept {
 }
 
 [[nodiscard]] inline constexpr bool
-to_number(std::string_view s, int &v) noexcept {
+to_number(std::string_view s, int &v, int base = 10) noexcept {
     const char *first = s.data();
     const char *last = first + s.size();
-    const auto [ptr, ec] = std::from_chars(first, last, v);
+    const auto [ptr, ec] = std::from_chars(first, last, v, base);
     return ptr == last && ec == std::errc{};
 }
 }  // namespace flow::string

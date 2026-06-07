@@ -6,6 +6,10 @@
 
 #include <module2.h>
 
+#ifndef VERSION
+#define VERSION L"0.1.0"
+#endif
+
 namespace {
 constinit LOG_HANDLE *logger = nullptr;
 

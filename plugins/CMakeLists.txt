@@ -19,6 +19,9 @@ if (NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^([xX]64|[xX]86_64|[aA][mM][dD]64)$")
     message(FATAL_ERROR "This project is only for x64")
 endif()
 
+# Path settings.
+set(CMAKE_SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 # Interface Library
 add_library(AviUtl2SDK INTERFACE)
 target_include_directories(AviUtl2SDK INTERFACE
@@ -71,6 +74,7 @@ add_compile_definitions(
 # Subdirectories.
 add_subdirectory(intern/alias)
 add_subdirectory(intern/font)
+add_subdirectory(intern/regex)
 add_subdirectory(intern/vector)
 add_subdirectory(editors)
 add_subdirectory(filters)

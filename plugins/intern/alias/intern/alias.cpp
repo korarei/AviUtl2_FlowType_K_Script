@@ -27,6 +27,47 @@ Object::get(int index) const {
 
 Object::Effect::Effect(std::string_view alias) : data(alias) {}
 
+std::string
+Object::Effect::unescape(std::string_view s) {
+    std::string result;
+    result.reserve(s.size());
+
+    size_t pos = 0uz;
+
+    while (true) {
+        const auto curr = s.find('\\', pos);
+        const auto next = curr + 1uz;
+
+        if (curr == std::string_view::npos) {
+            result.append(s.substr(pos));
+            break;
+        }
+
+        result.append(s.substr(pos, curr - pos));
+        if (next >= s.size()) {
+            result.push_back('\\');
+            break;
+        }
+
+        switch (s[next]) {
+            case 'n':
+                result.push_back('\n');
+                break;
+            case '\\':
+                result.push_back('\\');
+                break;
+            default:
+                result.push_back('\\');
+                result.push_back(s[next]);
+                break;
+        }
+
+        pos = next + 1uz;
+    }
+
+    return result;
+}
+
 std::string_view
 Object::Effect::get(const std::string &key, std::string_view def) const {
     const std::string target = "\n" + key + "=";

@@ -8,6 +8,7 @@ local kerning_mode = 1 --select@kerning_mode:Kerning Mode=1,None=0,Metrics=1
 --group:Filter,true
 local filter_regex_pattern = "" --string@filter_regex_pattern:Filter::Regex Pattern,
 local filter_capture_group = 0 --track@filter_capture_group:Filter::Capture Group,0,20,0,1
+local should_limit_fx = false --checksection@should_limit_fx:Filter::Limit Effects Below,false
 --group:Transform,false
 --separator:Pivot Point
 local xform_pivot_x = 0.0 --track@xform_pivot_x:Transform::Pivot::X,-100000,100000,0,0.01
@@ -25,7 +26,8 @@ local xform_rotation_x = 0.0 --track@xform_rotation_x:Transform::Rotation::X,-36
 local xform_rotation_y = 0.0 --track@xform_rotation_y:Transform::Rotation::Y,-3600,3600,0,0.01
 local xform_rotation_z = 0.0 --track@xform_rotation_z:Transform::Rotation::Z,-3600,3600,0,0.01
 --#define EULER XYZ Euler=5,XZY Euler=7,YXZ Euler=11,YZX Euler=15,ZXY Euler=19,ZYX Euler=21
-local xform_rotation_mode = 21 --select@xform_rotation_mode:Transform::Rotation::Mode=21,Quaternion=0,Axis Angle=1,${EULER}
+--#define ROTATION_MODES Quaternion=0,Axis Angle=1,${EULER}
+local xform_rotation_mode = 21 --select@xform_rotation_mode:Transform::Rotation::Mode=21,${ROTATION_MODES}
 --trackgroup@xform_rotation_x,xform_rotation_y,xform_rotation_z:Group::Transform::Rotation
 --separator:Scale
 local xform_scale_x = 100.0 --track@xform_scale_x:Transform::Scale::X,-10000,10000,100,0.01
@@ -38,7 +40,8 @@ local xform_scale_z = 100.0 --track@xform_scale_z:Transform::Scale::Z,-10000,100
 --#define CONTRAST Overlay=5,Linear Light=11
 --#define COMPARATIVE Difference=12,Subtract=2
 --#define HSL Color=9,Luminosity=8
-local xform_blend_mode = 0 --select@xform_blend_mode:Transform::Compositing::Blend Mode,Normal=0,${DARKEN},${LIGHTEN},${CONTRAST},${COMPARATIVE},${HSL}
+--#define BLEND_MODES Normal=0,${DARKEN},${LIGHTEN},${CONTRAST},${COMPARATIVE},${HSL}
+local xform_blend_mode = 0 --select@xform_blend_mode:Transform::Compositing::Blend Mode,${BLEND_MODES}
 local xform_opacity = 100.0 --track@xform_opacity:Transform::Compositing::Opacity,0,100,100,0.01
 --separator:Target
 local xform_target_local_space = true --checksection@xform_target_local_space:Transform::Target::Local Space,true
@@ -49,13 +52,8 @@ local tint_opacity = 100.0 --track@tint_opacity:Tint::Opacity,0,100,100,0.01
 --group:Additional Options,false
 local influence = 100.0 --track@influence:Influence,0,100,100,0.01
 
-if not obj.getoption("multi_object") then
+if obj.num < 2 then
     print("@error", "Enable Multi Object to use this script")
-    return
-end
-
-if obj.index >= obj.num then
-    print("@error", "Index is out of bounds")
     return
 end
 
@@ -66,34 +64,40 @@ do
     local utils = require("utilities")
     local lerp = utils.lerp
 
-    local utf8 = obj.module("UTF8@${PROJECT_NAME}")
+    local text = obj.module("Text@${PROJECT_NAME}")
 
     local ID = obj.effect_id
     local KEY_COUNT = "8973f111-5db5-4890-907d-52539fe55570-" .. ID
 
     local getvalue = obj.getvalue
-    local INDEX, NUM = obj.index, obj.num
+    local INDEX, NUM, LAYER, FPS, TIME = obj.index, obj.num, obj.layer, obj.framerate, obj.time
 
     xform_scale_x = xform_scale_x * 0.01
     xform_scale_y = xform_scale_y * 0.01
     xform_scale_z = xform_scale_z * 0.01
     xform_opacity = xform_opacity * 0.01
+
     tint_opacity = tint_opacity * 0.01
+
     influence = influence * 0.01
 
-    local text = getvalue("テキスト", "テキスト")
-    if text == nil then
+    local frame = getvalue("frame_s") + FPS * TIME
+
+    local handle = text.is_text(LAYER, frame)
+    if handle == nil then
         print("@error", "'テキスト' effect was not found in the source")
         return
     end
 
-    text = text:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("<.->", "")
+    local content = INDEX == 0 and text.content(handle):gsub("<.->", "") or nil
 
     local i, n = INDEX, NUM
 
     local c
     if INDEX == 0 then
-        c = utf8.count(text, true)
+        local utf8 = obj.module("UTF8@${PROJECT_NAME}")
+
+        c = utf8.count(content, true)
         _G[KEY_COUNT] = c
     else
         c = _G[KEY_COUNT]
@@ -114,16 +118,14 @@ do
 
     local offset = { 0.0, 0.0 }
     if kerning_mode == 1 then
-        local kerning = obj.module("Kerning@${PROJECT_NAME}")
-
         local KEY_KERNING = "308494ea-bd57-4fbf-9573-458df515646c-" .. ID
 
         local t
         if INDEX == 0 then
-            local size = tonumber(getvalue("テキスト", "サイズ"))
-            local font = getvalue("テキスト", "フォント")
-            local align = getvalue("テキスト", "文字揃え")
-            t = { kerning.shift(obj.id, text, size, font, align) }
+            local kerning = obj.module("Kerning@${PROJECT_NAME}")
+
+            local props = { text.property(handle, frame) }
+            t = { kerning.shift(obj.id, content, props[1], props[5], props[9]) }
             _G[KEY_KERNING] = t
         else
             t = _G[KEY_KERNING]
@@ -142,13 +144,13 @@ do
 
     local is_matched = true
     if filter_regex_pattern ~= "" then
-        local regex = obj.module("Regex@${PROJECT_NAME}")
-
         local KEY_REGEX = "db5638b7-59ab-4c53-8471-772fc3b03366-" .. ID
 
         local t = {}
         if INDEX == 0 then
-            for _, m in ipairs({ regex.search(ID, text, filter_regex_pattern, filter_capture_group) }) do
+            local regex = obj.module("Regex@${PROJECT_NAME}")
+
+            for _, m in ipairs({ regex.mark(ID, content, filter_regex_pattern, filter_capture_group) }) do
                 if not m[2] then
                     t[#t + 1] = m[1]
                 end
@@ -236,5 +238,7 @@ do
                 { r / 255.0, g / 255.0, b / 255.0, 1.0, tint_opacity * influence }
             )
         end
+    elseif should_limit_fx then
+        obj.draw()
     end
 end

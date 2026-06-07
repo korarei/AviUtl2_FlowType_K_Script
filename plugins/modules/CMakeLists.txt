@@ -6,7 +6,6 @@ add_subdirectory(intern/hash)
 add_subdirectory(intern/island)
 add_subdirectory(intern/text)
 add_subdirectory(intern/toml)
-add_subdirectory(intern/trim)
 add_subdirectory(intern/vector)
 
 add_library(${PROJECT_NAME} STATIC
@@ -26,7 +25,6 @@ target_link_libraries(${PROJECT_NAME}
         IslandModule
         TextModule
         TomlModule
-        TrimModule
         VectorModule
 )
 

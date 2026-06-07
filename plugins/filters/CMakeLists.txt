@@ -5,6 +5,7 @@ project(Filter LANGUAGES CXX)
 add_subdirectory(intern/align)
 add_subdirectory(intern/deform)
 add_subdirectory(intern/transform)
+add_subdirectory(intern/trim)
 
 add_library(${PROJECT_NAME} STATIC
     intern/filter.cpp
@@ -22,6 +23,7 @@ target_link_libraries(${PROJECT_NAME}
         AlignFilter
         DeformFilter
         TransformFilter
+        TrimFilter
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
