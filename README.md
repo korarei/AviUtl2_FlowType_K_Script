@@ -321,6 +321,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
   - Filter::Regex Pattern: 対象とする正規表現パターンを指定
   - Filter::Capture Group: 正規表現のキャプチャグループ番号を指定
+  - Filter::Limit Effects Below: 後続エフェクトを制限
 
   </details>
 
