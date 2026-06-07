@@ -10,7 +10,7 @@
 
 - 一部プロパティメニュー名の変更
 - `Repeat@FlowType_K` を追加
-- プロパティメニューに`プロパティ名をコピー`を追加
+- プロパティメニューに`プロパティ名をコピー`と`参照式をコピー`を追加
 - `Motion@FlowType_K` に `Offset` を追加
 - `Kerning@FlowType_K` に `Limit Effects Below` を追加
 - `Blink@FlowType_K` に `Based On` を追加
