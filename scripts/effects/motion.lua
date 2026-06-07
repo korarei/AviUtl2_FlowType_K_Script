@@ -234,10 +234,19 @@ do
         local get_time
 
         do
-            local n = getoption("section_num") + 1
+            local modf = math.modf
 
-            get_time = function(i)
-                return i < 0 and getvalue("time", 0.0, n + i) or getvalue("time", 0.0, i)
+            local n = getoption("section_num")
+
+            get_time = function(index)
+                local i, f = modf(index)
+
+                if i < 0 then
+                    i = n + i
+                    f = 1.0 + f
+                end
+
+                return getvalue("time", (getvalue("time", 0.0, i + 1) - getvalue("time", 0.0, i)) * f, i)
             end
         end
 
@@ -677,15 +686,12 @@ do
                         return
                     end
 
-                    local ofs = abs(offset)
+                    local amount = abs(offset)
 
-                    if ofs >= eps then
-                        local j, t = math.modf(ofs)
-
-                        j = -j - 1
-                        local st = get_time(j)
-                        local range = get_time(j - 1) - st
-                        offset = offset < 0.0 and (range * t + st) - TOTALTIME or TOTALTIME - (range * t + st)
+                    if amount >= eps then
+                        local base = -1 - i
+                        amount = get_time(base) - get_time(-amount + base)
+                        offset = offset < 0.0 and -amount or amount
                     end
                 else
                     duration = get_time(n)
@@ -694,14 +700,11 @@ do
                         return
                     end
 
-                    local ofs = abs(offset)
+                    local amount = abs(offset)
 
-                    if ofs >= eps then
-                        local j, t = math.modf(ofs)
-
-                        local st = get_time(j)
-                        local range = get_time(j + 1) - st
-                        offset = offset < 0.0 and -range * t - st or range * t + st
+                    if amount >= eps then
+                        amount = get_time(amount + i) - get_time(i)
+                        offset = offset < 0.0 and -amount or amount
                     end
                 end
             end
