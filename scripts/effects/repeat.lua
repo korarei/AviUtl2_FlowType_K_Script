@@ -125,14 +125,14 @@ do
         end
     end
 
-    local rx, ry = math.cos(position_offset_axis), math.sin(position_offset_axis)
+    local x, y = math.cos(position_offset_axis), math.sin(position_offset_axis)
     local s = math.tan(position_offset_angle)
-    local c = s * rx * ry
+    local c = s * x * y
 
     local dx, dy = w + layout_padding_x, h + layout_padding_y
 
-    local ex, ey = dx * (1 - c), dx * s * rx * rx
-    local fx, fy = -dy * s * ry * ry, dy * (1 + c)
+    local ex, ey = dx * (1 - c), dx * s * x * x
+    local fx, fy = -dy * s * y * y, dy * (1 + c)
 
     local ox = -0.5 * ((layout_count_x - 1) * ex + (layout_count_y - 1) * fx)
     local oy = -0.5 * ((layout_count_x - 1) * ey + (layout_count_y - 1) * fy)

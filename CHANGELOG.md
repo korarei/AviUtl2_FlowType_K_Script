@@ -16,8 +16,10 @@
 - キャッシュ処理の修正
 - 出力中はオーダー順序を表示しないように修正
 - `Motion@FlowType_K` で `Timing` が `Manual` の場合，退場モーションがおかしかった問題の修正
+- `Motion@FlowType_K` で リリックモーションの移動量と伸び量をリンクするように修正
 - `Motion@FlowType_K` で点滅させるとき使用する時間値が全体時間であった問題の修正
 - `Motion@FlowType_K` の点滅と `Blink@FlowType_K` の時間変化をFPS依存に修正
+- `Motion@FlowType_K` で `Effect::Parameters` のパース結果が消されていた場合エラーで止まる問題の修正
 - `Motion@FlowType_K` ， `Echo@FlowType_K` ， `Island@FlowType_K` で出力時間が範囲外になる問題を修正
 - `Motion@FlowType_K` および `Echo@FlowType_K` でエコーカウントが1つ大きかった問題の修正 (破壊的)
 - テキスト分解で中心座標が正しくセットされない問題の修正

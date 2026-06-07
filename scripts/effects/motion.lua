@@ -304,23 +304,37 @@ do
             return abs(range) > eps and (getvalue(0, TOTALTIME * t) - st) / range or t
         end
 
-        local function progress(t, i, n)
-            t = duration < 0.0 and t - TOTALTIME - duration or t
-            local d = duration * (motion_overlap + (1.0 - motion_overlap) / n) * max(motion_softness, eps)
+        local progress
 
-            if timing == 1 then
-                i = duration < 0.0 and get_time(i - n) - TOTALTIME - duration or get_time(i)
-                i = i * (d + duration) / duration
-            else
-                i = abs(duration) * i / n - min(d, 0.0)
-            end
+        if duration < 0.0 then
+            progress = function(t, i, n)
+                t = t - TOTALTIME - duration
+                local d = duration * (motion_overlap + (1.0 - motion_overlap) / n) * max(motion_softness, eps)
 
-            local p = t / duration + (t - i) / d
-            local w = 1.0 - interpolate(p)
+                if timing == 1 then
+                    i = (get_time(i - n) - TOTALTIME - duration) * (d + duration) / duration
+                else
+                    i = -duration * i / n - min(d, 0.0)
+                end
 
-            if duration < 0.0 then
+                local p = t / duration + (t - i) / d
+                local w = 1.0 - interpolate(p)
+
                 return (duration * i) / (duration + d) - t, -w
-            else
+            end
+        else
+            progress = function(t, i, n)
+                local d = duration * (motion_overlap + (1.0 - motion_overlap) / n) * max(motion_softness, eps)
+
+                if timing == 1 then
+                    i = get_time(i) * (d + duration) / duration
+                else
+                    i = duration * i / n - min(d, 0.0)
+                end
+
+                local p = t / duration + (t - i) / d
+                local w = 1.0 - interpolate(p)
+
                 return t - (duration * i) / (duration + d), w
             end
         end
@@ -390,10 +404,10 @@ do
             local should_edge_detect = blink_edge_threshold > -100.0 + eps
 
             apply_lyric = function(i, n, t, w)
-                local hx, hy, hz, _ = hash4d(i, n, seed)
+                local hx, hy, _, _ = hash4d(i, n, seed)
 
                 local r = lerp(lyric_distance, lyric_distance * hx, lyric_jitter) * w
-                local s = lerp(lyric_stretch, lyric_stretch * hy, lyric_jitter) * abs(w)
+                local s = lerp(lyric_stretch, lyric_stretch * hx, lyric_jitter) * abs(w)
 
                 local d = 0.0
                 if lyric_shape == 0 then
@@ -404,7 +418,7 @@ do
 
                 local angle = lyric_angle
                 if lyric_selection == 0 then
-                    angle = angle + d * floor(hz * lyric_divisions)
+                    angle = angle + d * floor(hy * lyric_divisions)
                 elseif lyric_selection == 1 then
                     angle = angle + d * i
                 elseif lyric_selection == 2 then
@@ -491,80 +505,82 @@ do
                 data = _G[KEY_FX]
             end
 
-            if type(data) ~= "table" then
-                print("@warn", "Shared FX data table is missing or corrupted")
-            end
-
             if INDEX == NUM - 1 then
                 _G[KEY_FX] = nil
             end
 
-            local env = {
-                _VERSION = _VERSION,
-                ipairs = ipairs,
-                pairs = pairs,
-                next = next,
-                select = select,
-                unpack = unpack,
-                type = type,
-                tonumber = tonumber,
-                tostring = tostring,
-                pcall = pcall,
-                xpcall = xpcall,
-                print = print,
-                math = math,
-                string = string,
-                table = table,
-                bit = bit,
-                setfont = obj.setfont,
-                rand = rand,
-                rand1 = rand1,
-                RGB = RGB,
-                HSV = HSV,
-                OR = OR,
-                AND = AND,
-                XOR = XOR,
-                SHIFT = SHIFT,
-                rotation = rotation,
-                debug_print = debug_print,
-                obj = obj,
-                weight = nil,
-            }
+            if type(data) == "table" then
+                local env = {
+                    _VERSION = _VERSION,
+                    ipairs = ipairs,
+                    pairs = pairs,
+                    next = next,
+                    select = select,
+                    unpack = unpack,
+                    type = type,
+                    tonumber = tonumber,
+                    tostring = tostring,
+                    pcall = pcall,
+                    xpcall = xpcall,
+                    print = print,
+                    math = math,
+                    string = string,
+                    table = table,
+                    bit = bit,
+                    setfont = obj.setfont,
+                    rand = rand,
+                    rand1 = rand1,
+                    RGB = RGB,
+                    HSV = HSV,
+                    OR = OR,
+                    AND = AND,
+                    XOR = XOR,
+                    SHIFT = SHIFT,
+                    rotation = rotation,
+                    debug_print = debug_print,
+                    obj = obj,
+                    weight = nil,
+                }
 
-            apply_fx = function(w)
-                env.weight = w
+                apply_fx = function(w)
+                    env.weight = w
 
-                local params
-                for i, t in ipairs(data) do
-                    if i % 2 == 1 then
-                        params = {}
-                        params[#params + 1] = t
-                    else
-                        for k, v in pairs(t) do
-                            local p = k:match("^lua:(.*)$")
-                            if p ~= nil and p ~= "" then
-                                local f, e = load(v, nil, "t", env)
-                                if type(f) == "function" then
-                                    local ok, result = pcall(f)
-                                    if ok then
-                                        params[#params + 1] = p
-                                        params[#params + 1] = result
+                    local params
+                    for i, t in ipairs(data) do
+                        if i % 2 == 1 then
+                            params = {}
+                            params[#params + 1] = t
+                        else
+                            for k, v in pairs(t) do
+                                local p = k:match("^lua:(.*)$")
+                                if p ~= nil and p ~= "" then
+                                    local f, e = load(v, nil, "t", env)
+                                    if type(f) == "function" then
+                                        local ok, result = pcall(f)
+                                        if ok then
+                                            params[#params + 1] = p
+                                            params[#params + 1] = result
+                                        else
+                                            print("@warn", "Lua execution failed for the FX key '" .. p .. "'")
+                                            print(result)
+                                        end
                                     else
-                                        print("@warn", "Lua execution failed for the FX key '" .. p .. "'")
-                                        print(result)
+                                        print("@warn", "Lua syntax error detected in the FX key '" .. p .. "'")
+                                        print(e)
                                     end
                                 else
-                                    print("@warn", "Lua syntax error detected in the FX key '" .. p .. "'")
-                                    print(e)
+                                    params[#params + 1] = k
+                                    params[#params + 1] = tonumber(v) or v
                                 end
-                            else
-                                params[#params + 1] = k
-                                params[#params + 1] = tonumber(v) or v
                             end
+                            effect(unpack(params))
                         end
-                        effect(unpack(params))
                     end
                 end
+            else
+                print("@warn", "Shared FX data table is missing or corrupted")
+
+                apply_fx = function() end
             end
         end
 
@@ -718,7 +734,7 @@ do
                         "map",
                         "object",
                         { "object", CACHE_LUT },
-                        { abs(w), idx / (echo_count - 1) },
+                        { abs(w), idx / max((echo_count - 1), 1) },
                         "copy",
                         "clamp"
                     )
