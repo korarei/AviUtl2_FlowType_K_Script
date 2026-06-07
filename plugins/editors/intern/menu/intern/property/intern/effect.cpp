@@ -97,7 +97,7 @@ copy_fx(CopyFormat format, EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar
                     continue;
                 }
 
-                if (line.starts_with("effect.name="))
+                if (line.starts_with("effect.name"))
                     continue;
 
                 if (line.starts_with('[') && line.ends_with(']')) {
@@ -114,6 +114,9 @@ copy_fx(CopyFormat format, EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar
                 }
 
                 const std::string_view k = pair.substr(0uz, eq), v = pair.substr(eq + 1uz);
+
+                if (k.ends_with(".hide"))
+                    continue;
 
                 const auto it = ctx.type.find(std::string(k));
                 if (it != ctx.type.end()) {
