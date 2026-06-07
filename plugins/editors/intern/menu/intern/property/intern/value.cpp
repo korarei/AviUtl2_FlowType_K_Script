@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <format>
 #include <ranges>
 #include <string>
@@ -89,12 +90,18 @@ copy_value(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const wch
         }
 
         const auto sep = props.find('|');
+        const auto cfg = sep != std::string_view::npos ? props.substr(sep) : std::string_view{};
         auto values = props.substr(0, sep) | std::views::split(',');
         auto remaining = values | std::views::drop(1);
 
         if (remaining.begin() == remaining.end()) {
             return;
-        } else if (ctx->type != EDIT_HANDLE::EFFECT_ITEM_TYPE_CHECK) {
+        } else if (ctx->type == EDIT_HANDLE::EFFECT_ITEM_TYPE_CHECK && sep != std::string_view::npos) {
+            int flag;
+            if (string::to_number(cfg.substr(1uz, cfg.find('|', 1uz) - 1uz), flag)
+                && (static_cast<uint32_t>(flag) & 1u) == 0u)
+                return;
+        } else {
             // 中間点無視
             double dummy;
             if (!string::to_number(std::string_view(*(values | std::views::drop(2)).begin()), dummy)) {
@@ -128,7 +135,7 @@ copy_value(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const wch
                 | std::views::join_with(','));
 
         if (sep != std::string_view::npos)
-            result += props.substr(sep);
+            result += cfg;
 
         if (edit->set_object_item_value(ctx->handle, ctx->fx, ctx->prop, result.c_str()))
             logger->info(logger, std::format(L"Updated '{}:{}'", ctx->fx, ctx->prop).c_str());
@@ -176,6 +183,7 @@ invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
         }
 
         auto index = edit->get_focus_object_section();
+        const auto num = edit->get_object_section_num(ctx->handle);
 
         if (index < 0) {
             logger->error(logger, L"Failed to get the focus section");
@@ -189,11 +197,11 @@ invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
                 st = ed = index;
                 break;
             case TargetRange::All:
-                ed = edit->get_object_section_num(ctx->handle);
+                ed = num;
                 break;
             case TargetRange::Subsequent:
                 st = index;
-                ed = edit->get_object_section_num(ctx->handle);
+                ed = num;
                 break;
             case TargetRange::Preceding:
                 ed = index;
@@ -201,12 +209,18 @@ invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
         }
 
         const auto sep = props.find('|');
+        const auto cfg = sep != std::string_view::npos ? props.substr(sep) : std::string_view{};
         auto values = props.substr(0, sep) | std::views::split(',');
         auto remaining = values | std::views::drop(1);
 
         if (remaining.begin() == remaining.end()) {
             st = ed = 0;
-        } else if (ctx->type != EDIT_HANDLE::EFFECT_ITEM_TYPE_CHECK) {
+        } else if (ctx->type == EDIT_HANDLE::EFFECT_ITEM_TYPE_CHECK && sep != std::string_view::npos) {
+            int flag;
+            if (!string::to_number(cfg.substr(1uz, cfg.find('|', 1uz) - 1uz), flag)
+                || (static_cast<uint32_t>(flag) & 1u) == 0u)
+                st = 0, ed = num - 1;
+        } else {
             // 中間点無視
             double dummy;
             if (!string::to_number(std::string_view(*(values | std::views::drop(2)).begin()), dummy)) {
@@ -262,7 +276,7 @@ invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
         }
 
         if (sep != std::string_view::npos)
-            result += props.substr(sep);
+            result += cfg;
 
         if (edit->set_object_item_value(ctx->handle, ctx->fx, ctx->prop, result.c_str()))
             logger->info(logger, std::format(L"Updated '{}:{}'", ctx->fx, ctx->prop).c_str());
