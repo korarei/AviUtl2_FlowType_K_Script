@@ -5,7 +5,7 @@ requires-astra = ">=0.6.4"
 name = "FlowType_K"
 version = "0.1.0"
 author = "Korarei"
-requires-aviutl2 = "2004800"
+requires-aviutl2 = "2004900"
 
 [build]
 [[build.plugins]]

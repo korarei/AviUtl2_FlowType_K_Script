@@ -118,8 +118,8 @@ do
     local random, randomseed = math.random, math.randomseed
     local getvalue, getinfo, getoption, effect = obj.getvalue, obj.getinfo, obj.getoption, obj.effect
     local copybuffer, pixelshader = obj.copybuffer, obj.pixelshader
-    local LAYER, TOTALTIME = obj.layer, obj.totaltime
-    local ID, INDEX, NUM, FPS = obj.effect_id, obj.index, obj.num, obj.framerate
+    local ID, INDEX, NUM, LAYER = obj.effect_id, obj.index, obj.num, obj.layer
+    local FPS, TIME, TOTALTIME = obj.framerate, obj.time, obj.totaltime
     local spf = 1.0 / FPS
 
     offset = duration < 0.0 and -offset or offset
@@ -585,24 +585,24 @@ do
         end
 
         do
-            local i, n, time = INDEX, NUM, obj.time
+            local i, n = INDEX, NUM
 
             if NUM > 1 then
-                local text
+                local content
 
                 if motion_based_on >= 0 then
+                    local text = obj.module("Text@${PROJECT_NAME}")
                     local utf8 = obj.module("UTF8@${PROJECT_NAME}")
 
                     local KEY_COUNT = "58172aa6-e0d5-4503-aa68-984427e8f04f-" .. ID
 
-                    text = getvalue("テキスト", "テキスト")
-
-                    if text ~= nil then
-                        text = text:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("<.->", "")
+                    local handle = text.is_text(LAYER, getvalue("frame_s") + FPS * TIME)
+                    if handle ~= nil then
+                        content = text.content(handle):gsub("<.->", "")
 
                         local c
                         if INDEX == 0 then
-                            c = utf8.count(text, true)
+                            c = utf8.count(content, true)
                             _G[KEY_COUNT] = c
                         else
                             c = _G[KEY_COUNT]
@@ -623,12 +623,12 @@ do
                     end
                 end
 
-                if text ~= nil and motion_based_on > 0 and getoption("multi_object") then
+                if content ~= nil and motion_based_on > 0 and getoption("multi_object") then
                     local KEY_GROUP = "a7d6bd98-24a1-480a-bf02-679a2c80c83d-" .. ID
 
                     local t
                     if INDEX == 0 then
-                        t = group(motion_based_on, text)
+                        t = group(motion_based_on, content)
                         _G[KEY_GROUP] = t
                     else
                         t = _G[KEY_GROUP]
@@ -717,7 +717,7 @@ do
             end
 
             motion = function(dt, idx)
-                local t, w = progress(clamp(time + dt - offset, 0.0, TOTALTIME), i, n)
+                local t, w = progress(clamp(TIME + dt - offset, 0.0, TOTALTIME), i, n)
 
                 apply_xform(w)
 
@@ -803,8 +803,6 @@ do
 
     if echo_count > 1 then
         local CACHE_IMAGE = "cache:cc2b9a9b-89d5-4481-b8f0-58ca17cd499f-" .. ID
-
-        local TIME = obj.time
 
         if not copybuffer(CACHE_IMAGE, "object") then
             stop("Failed to copy buffer")

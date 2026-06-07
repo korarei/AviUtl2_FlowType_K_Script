@@ -1,4 +1,4 @@
-#include "../regex.hpp"
+#include "regex.hpp"
 
 #include <cstdint>
 #include <string_view>
@@ -19,6 +19,7 @@
 
 namespace {
 namespace string = flow::string;
+
 using RegexCache = flow::regex::RegexCache;
 
 constinit LOG_HANDLE *logger = nullptr;

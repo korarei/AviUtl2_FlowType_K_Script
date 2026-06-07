@@ -35,7 +35,8 @@ do
 
     local max, floor, rad, random, randomseed = math.max, math.floor, math.rad, math.random, math.randomseed
     local getvalue, getinfo, copybuffer, pixelshader = obj.getvalue, obj.getinfo, obj.copybuffer, obj.pixelshader
-    local INDEX, NUM, TIME, TOTALTIME = obj.index, obj.num, obj.time, obj.totaltime
+    local INDEX, NUM, LAYER = obj.index, obj.num, obj.layer
+    local FPS, TIME, TOTALTIME = obj.framerate, obj.time, obj.totaltime
 
     layout_count_x = floor(layout_count_x)
     layout_count_y = floor(layout_count_y)
@@ -78,35 +79,21 @@ do
     local w, h = obj.w, obj.h
 
     if NUM > 1 then
-        local text = getvalue("テキスト", "テキスト")
-        if text ~= nil then
+        local text = obj.module("Text@${PROJECT_NAME}")
+
+        local frame = getvalue("frame_s") + FPS * TIME
+
+        local handle = text.is_text(LAYER, frame)
+        if handle ~= nil then
             local KEY_SIZE = "0a5312f4-0ec0-430b-bbf8-2316b0fd3e20-" .. ID
 
             local size
             if INDEX == 0 then
-                local styles = {
-                    ["標準文字"] = 0,
-                    ["影付き文字"] = 1,
-                    ["影付き文字(薄)"] = 2,
-                    ["縁取り文字"] = 3,
-                    ["縁取り文字(細)"] = 4,
-                    ["縁取り文字(太)"] = 5,
-                    ["縁取り文字(角)"] = 6,
-                }
+                local props = { text.property(handle, frame) }
 
-                obj.setfont(
-                    getvalue("テキスト", "フォント") --[[@as string]],
-                    tonumber(getvalue("テキスト", "サイズ")) --[[@as number]],
-                    styles[getvalue("テキスト", "文字装飾")],
-                    0,
-                    0,
-                    getvalue("テキスト", "B") ~= "0",
-                    getvalue("テキスト", "I") ~= "0",
-                    tonumber(getvalue("テキスト", "字間")) --[[@as number]],
-                    tonumber(getvalue("テキスト", "行間")) --[[@as number]]
-                )
+                obj.setfont(props[5], props[1], props[8], 0, 0, props[10], props[11], props[2], props[3])
 
-                size = { obj.load("text.layout", text:gsub("\\\\", "\\"):gsub("\\n", "\n")) }
+                size = { obj.load("text.layout", text.content(handle)) }
                 _G[KEY_SIZE] = size
             else
                 size = _G[KEY_SIZE]

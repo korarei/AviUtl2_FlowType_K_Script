@@ -67,7 +67,7 @@ deform(FILTER_PROC_VIDEO *video) {
     t.linear() *= shear;
     t.rotate(axis);
 
-    t.scale(Eigen::Vector2f(scale_x.value * 0.01f, scale_y.value * 0.01f));
+    t.scale(Eigen::Vector2f(static_cast<float>(scale_x.value) * 0.01f, static_cast<float>(scale_y.value) * 0.01f));
     t.translate(Eigen::Vector2f(-static_cast<float>(pivot_x.value), -static_cast<float>(pivot_y.value)));
 
     const float cx = video->object->width * 0.5f, cy = video->object->height * 0.5f;
@@ -92,11 +92,12 @@ deform(FILTER_PROC_VIDEO *video) {
         return false;
     }
 
-    std::array<VERTEX_TEXTURE, 4> vertices{};
-    vertices[0] = {verts(0, 0), verts(1, 0), 0.0f, 0.0f, 0.0f, alpha};
-    vertices[1] = {verts(0, 1), verts(1, 1), 0.0f, 1.0f, 0.0f, alpha};
-    vertices[2] = {verts(0, 2), verts(1, 2), 0.0f, 1.0f, 1.0f, alpha};
-    vertices[3] = {verts(0, 3), verts(1, 3), 0.0f, 0.0f, 1.0f, alpha};
+    std::array<VERTEX_TEXTURE, 4> vertices{
+            VERTEX_TEXTURE{verts(0, 0), verts(1, 0), 0.0f, 0.0f, 0.0f, alpha},
+            VERTEX_TEXTURE{verts(0, 1), verts(1, 1), 0.0f, 1.0f, 0.0f, alpha},
+            VERTEX_TEXTURE{verts(0, 2), verts(1, 2), 0.0f, 1.0f, 1.0f, alpha},
+            VERTEX_TEXTURE{verts(0, 3), verts(1, 3), 0.0f, 0.0f, 1.0f, alpha},
+    };
 
     if (!video->draw_poly_to_resource(L"resource:result", VERTEX_TYPE::QUAD_TEXTURE, vertices.data(), 4, L"object")) {
         logger->error(logger, L"Failed to draw image");

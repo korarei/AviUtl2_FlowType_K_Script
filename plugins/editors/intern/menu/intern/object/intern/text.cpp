@@ -26,47 +26,6 @@ using ID = flow::font::ID;
 constinit LOG_HANDLE *logger = nullptr;
 
 [[nodiscard]] constexpr std::string
-unescape(std::string_view s) {
-    std::string result;
-    result.reserve(s.size());
-
-    size_t pos = 0uz;
-
-    while (true) {
-        const auto curr = s.find('\\', pos);
-        const auto next = curr + 1uz;
-
-        if (curr == std::string_view::npos) {
-            result.append(s.substr(pos));
-            break;
-        }
-
-        result.append(s.substr(pos, curr - pos));
-        if (next >= s.size()) {
-            result.push_back('\\');
-            break;
-        }
-
-        switch (s[next]) {
-            case 'n':
-                result.push_back('\n');
-                break;
-            case '\\':
-                result.push_back('\\');
-                break;
-            default:
-                result.push_back('\\');
-                result.push_back(s[next]);
-                break;
-        }
-
-        pos = next + 1uz;
-    }
-
-    return result;
-}
-
-[[nodiscard]] constexpr std::string
 delete_tags(std::string_view s) {
     std::string result;
     result.reserve(s.size());
@@ -137,8 +96,23 @@ shift_object_indices(std::string_view s, int offset = -1) {
 }
 
 constexpr std::vector<Eigen::Vector2d>
-layout_text(const std::string &text, const std::string &name, double size, std::string_view align) {
-    const auto direction = align.starts_with("縦書") ? HB_DIRECTION_TTB : HB_DIRECTION_LTR;
+layout_text(const std::string &text, const std::string &name, double size, std::string_view alignment) {
+    alignment.remove_suffix(1uz);
+
+    int base;
+
+    if (alignment.starts_with("縦")) {
+        alignment.remove_prefix(7uz);
+        const int y = alignment.ends_with("左") ? 2 : alignment.ends_with("中") ? 1 : 0;
+        const int x = alignment.starts_with("下") ? 2 : alignment.starts_with("中") ? 1 : 0;
+        base = x + y * 3 + 9;
+    } else {
+        const int y = alignment.ends_with("下") ? 2 : alignment.ends_with("中") ? 1 : 0;
+        const int x = alignment.starts_with("右") ? 2 : alignment.starts_with("中") ? 1 : 0;
+        base = x + y * 3;
+    }
+
+    const auto direction = base >= 9 ? HB_DIRECTION_TTB : HB_DIRECTION_LTR;
 
     std::vector<Eigen::Vector2d> result;
     result.reserve(text.size() / 2uz);
@@ -166,7 +140,7 @@ layout_text(const std::string &text, const std::string &name, double size, std::
         remaining = nl != std::string_view::npos ? remaining.substr(nl + 1) : std::string_view{};
 
         if (!line.empty() && line.back() == '\r')
-            line.remove_suffix(1);
+            line.remove_suffix(1uz);
 
         if (line.empty()) {
             if (direction == HB_DIRECTION_LTR)
@@ -216,26 +190,41 @@ layout_text(const std::string &text, const std::string &name, double size, std::
         if (!row.empty()) {
             const auto n = row.size() - 1uz;
 
-            if (direction == HB_DIRECTION_LTR) {
-                if (align.starts_with("中央揃え")) {
+            switch (base) {
+                case 1:
+                case 4:
+                case 7: {
                     const auto origin = std::lerp(row[n].x(), nominal.x(), 0.5) - row[n].x() * 0.5;
                     for (size_t i = 0uz; i < n; ++i) row[i].x() = std::lerp(row[i].x(), row[i + 1uz].x(), 0.5) - origin;
                     row[n].x() = row[n].x() * 0.5;
-                } else if (align.starts_with("右寄せ")) {
+                    break;
+                }
+                case 2:
+                case 5:
+                case 8: {
                     const auto origin = nominal.x();
                     for (size_t i = 0uz; i < n; ++i) row[i].x() = row[i + 1uz].x() - origin;
                     row[n].x() = 0.0;
+                    break;
                 }
-            } else {
-                if (align.starts_with("縦書 中央")) {
+                case 10:
+                case 13:
+                case 16: {
                     const auto origin = std::lerp(row[n].y(), nominal.y(), 0.5) - row[n].y() * 0.5;
                     for (size_t i = 0uz; i < n; ++i) row[i].y() = std::lerp(row[i].y(), row[i + 1uz].y(), 0.5) - origin;
                     row[n].y() = row[n].y() * 0.5;
-                } else if (align.starts_with("縦書 下寄")) {
+                    break;
+                }
+                case 11:
+                case 14:
+                case 17: {
                     const auto origin = nominal.y();
                     for (size_t i = 0uz; i < n; ++i) row[i].y() = row[i + 1uz].y() - origin;
                     row[n].y() = 0.0;
+                    break;
                 }
+                default:
+                    break;
             }
         }
 
@@ -252,16 +241,29 @@ layout_text(const std::string &text, const std::string &name, double size, std::
 
     Eigen::Vector2d origin(0.0, 0.0);
 
-    if (direction == HB_DIRECTION_LTR) {
-        if (align.ends_with("[中]"))
+    switch (base) {
+        case 3:
+        case 4:
+        case 5:
             origin.y() = (line_origin.y() + line_height) * 0.5;
-        else if (align.ends_with("[下]"))
+            break;
+        case 6:
+        case 7:
+        case 8:
             origin.y() = line_origin.y() + line_height;
-    } else {
-        if (align.ends_with("[中]"))
+            break;
+        case 12:
+        case 13:
+        case 14:
             origin.x() = (line_origin.x() + line_height) * 0.5;
-        else if (align.ends_with("[左]"))
+            break;
+        case 15:
+        case 16:
+        case 17:
             origin.x() = line_origin.x() + line_height;
+            break;
+        default:
+            break;
     }
 
     for (const auto &row : rows) {
@@ -363,7 +365,7 @@ split_text(EDIT_SECTION *edit) {
     if (text.empty())
         return;
 
-    text = unescape(text);
+    text = Object::Effect::unescape(text);
     text = delete_tags(text);
 
     if (text.empty())
@@ -376,11 +378,11 @@ split_text(EDIT_SECTION *edit) {
         return;
     }
 
-    const auto align = fx_text.get("文字揃え");
+    const auto alignment = fx_text.get("文字揃え");
 
     std::vector<Eigen::Vector2d> coords;
     try {
-        coords = layout_text(text + '\n', font, size, align);
+        coords = layout_text(text + '\n', font, size, alignment);
     } catch (const std::exception &e) {
         logger->error(logger, string::to_wstring(string::as_utf8(e.what())).c_str());
         return;
@@ -492,7 +494,7 @@ split_text(EDIT_SECTION *edit) {
                         fx_text.get("文字色"),
                         fx_text.get("影・縁色"),
                         fx_text.get("文字装飾"),
-                        align,
+                        alignment,
                         fx_text.get("B"),
                         fx_text.get("I"),
                         chars[i],

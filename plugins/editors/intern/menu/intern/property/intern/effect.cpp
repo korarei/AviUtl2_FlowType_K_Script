@@ -90,7 +90,7 @@ copy_fx(CopyFormat format, EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar
                 remaining = nl != std::string_view::npos ? remaining.substr(nl + 1) : std::string_view{};
 
                 if (!line.empty() && line.back() == '\r')
-                    line.remove_suffix(1);
+                    line.remove_suffix(1uz);
 
                 if (line.empty()) {
                     result += "\n";

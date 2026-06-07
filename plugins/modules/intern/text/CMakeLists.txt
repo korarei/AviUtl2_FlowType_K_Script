@@ -8,7 +8,9 @@ find_package(utf8cpp CONFIG REQUIRED)
 # Library definition.
 add_library(${PROJECT_NAME} STATIC
     intern/kerning.cpp
+    intern/property.cpp
     intern/regex.cpp
+    intern/text.cpp
     intern/utf8.cpp
 )
 
@@ -25,6 +27,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         Eigen3::Eigen
         utf8cpp::utf8cpp
+        Alias
         Font
         Regex
 )

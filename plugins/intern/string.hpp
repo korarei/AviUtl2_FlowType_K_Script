@@ -77,10 +77,10 @@ to_number(std::string_view s, double &v) noexcept {
 }
 
 [[nodiscard]] inline constexpr bool
-to_number(std::string_view s, int &v) noexcept {
+to_number(std::string_view s, int &v, int base = 10) noexcept {
     const char *first = s.data();
     const char *last = first + s.size();
-    const auto [ptr, ec] = std::from_chars(first, last, v);
+    const auto [ptr, ec] = std::from_chars(first, last, v, base);
     return ptr == last && ec == std::errc{};
 }
 }  // namespace flow::string

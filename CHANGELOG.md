@@ -14,6 +14,7 @@
 - `Kerning@FlowType_K` に `Effect::Parameters` を追加
 - `Island@FlowType_K` で `Time Offset::Order` によって個別オブジェクトのインデックス付与順が変わるように変更
 - キャッシュ処理の修正
+- テキストオブジェクトの情報を必要とするエフェクトをフィルタ効果やグループ制御からかけれるように修正
 - 出力中はオーダー順序を表示しないように修正
 - `Motion@FlowType_K` で `Timing` が `Manual` の場合，退場モーションがおかしかった問題の修正
 - `Motion@FlowType_K` で リリックモーションの移動量と伸び量をリンクするように修正

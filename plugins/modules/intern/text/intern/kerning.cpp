@@ -1,4 +1,4 @@
-#include "../kerning.hpp"
+#include "kerning.hpp"
 
 #include <cstdint>
 #include <string>
@@ -18,6 +18,7 @@
 
 namespace {
 namespace string = flow::string;
+
 using HB_Font = flow::font::HB_Font;
 using HB_Buffer = flow::font::HB_Buffer;
 using FontCache = flow::font::FontCache;
@@ -44,9 +45,9 @@ shift(SCRIPT_MODULE_PARAM *param) {
 
     const int64_t id = static_cast<int64_t>(param->get_param_double(0));
     const std::string text = string::as_string(param->get_param_string(1));
-    const double size = param->get_param_double(2);
+    const auto size = param->get_param_double(2);
     const std::string name = string::as_string(param->get_param_string(3));
-    const std::string_view align = n > 4 ? string::as_string_view(param->get_param_string(4)) : "";
+    const auto alignment = param->get_param_int(4);
 
     if (text.empty())
         return;
@@ -56,7 +57,7 @@ shift(SCRIPT_MODULE_PARAM *param) {
         return;
     }
 
-    const auto direction = align.starts_with("縦書") ? HB_DIRECTION_TTB : HB_DIRECTION_LTR;
+    const auto direction = alignment >= 9 ? HB_DIRECTION_TTB : HB_DIRECTION_LTR;
 
     HB_Font font = nullptr;
     try {
@@ -102,7 +103,7 @@ shift(SCRIPT_MODULE_PARAM *param) {
         remaining = nl != std::string_view::npos ? remaining.substr(nl + 1) : std::string_view{};
 
         if (!line.empty() && line.back() == '\r')
-            line.remove_suffix(1);
+            line.remove_suffix(1uz);
 
         if (line.empty())
             continue;

@@ -65,13 +65,14 @@ do
     local utils = require("utilities")
     local lerp = utils.lerp
 
+    local text = obj.module("Text@${PROJECT_NAME}")
     local utf8 = obj.module("UTF8@${PROJECT_NAME}")
 
     local ID = obj.effect_id
     local KEY_COUNT = "8973f111-5db5-4890-907d-52539fe55570-" .. ID
 
     local getvalue, effect = obj.getvalue, obj.effect
-    local INDEX, NUM = obj.index, obj.num
+    local INDEX, NUM, LAYER, FPS, TIME = obj.index, obj.num, obj.layer, obj.framerate, obj.time
 
     xform_scale_x = xform_scale_x * 0.01
     xform_scale_y = xform_scale_y * 0.01
@@ -82,8 +83,10 @@ do
 
     influence = influence * 0.01
 
-    local text = getvalue("テキスト", "テキスト")
-    if text == nil then
+    local frame = getvalue("frame_s") + FPS * TIME
+
+    local handle = text.is_text(LAYER, frame)
+    if handle == nil then
         print("@error", "'テキスト' effect was not found in the source")
         return
     end
@@ -177,13 +180,13 @@ do
         end
     end
 
-    text = text:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("<.->", "")
+    local content = INDEX == 0 and text.content(handle):gsub("<.->", "") or nil
 
     local i, n = INDEX, NUM
 
     local c
     if INDEX == 0 then
-        c = utf8.count(text, true)
+        c = utf8.count(content, true)
         _G[KEY_COUNT] = c
     else
         c = _G[KEY_COUNT]
@@ -210,10 +213,8 @@ do
 
         local t
         if INDEX == 0 then
-            local size = tonumber(getvalue("テキスト", "サイズ"))
-            local font = getvalue("テキスト", "フォント")
-            local align = getvalue("テキスト", "文字揃え")
-            t = { kerning.shift(obj.id, text, size, font, align) }
+            local props = { text.property(handle, frame) }
+            t = { kerning.shift(obj.id, content, props[1], props[5], props[9]) }
             _G[KEY_KERNING] = t
         else
             t = _G[KEY_KERNING]
@@ -238,7 +239,7 @@ do
 
         local t = {}
         if INDEX == 0 then
-            for _, m in ipairs({ regex.mark(ID, text, filter_regex_pattern, filter_capture_group) }) do
+            for _, m in ipairs({ regex.mark(ID, content, filter_regex_pattern, filter_capture_group) }) do
                 if not m[2] then
                     t[#t + 1] = m[1]
                 end
