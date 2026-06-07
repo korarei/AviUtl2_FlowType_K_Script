@@ -21,6 +21,7 @@
 - `Motion@FlowType_K` ， `Echo@FlowType_K` ， `Island@FlowType_K` で出力時間が範囲外になる問題を修正
 - `Motion@FlowType_K` および `Echo@FlowType_K` でエコーカウントが1つ大きかった問題の修正 (破壊的)
 - テキスト分解で中心座標が正しくセットされない問題の修正
+- 中間点無視のトラックバーに対して `値を揃える` を使用するとクラッシュする問題の修正
 - `Trim@FlowType_K` のフィルタプラグイン化
 
 ## v0.2.0

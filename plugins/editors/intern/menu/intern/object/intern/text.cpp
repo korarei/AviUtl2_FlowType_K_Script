@@ -457,7 +457,7 @@ split_text(EDIT_SECTION *edit) {
 
     auto negate = [](std::string_view s) -> std::string {
         if (s.starts_with('-'))
-            return std::string(s.substr(1));
+            return std::string(s.substr(1uz));
         else if (s.starts_with('0'))
             return std::string(s);
         else

@@ -3,10 +3,10 @@
 #include <cstring>
 #include <string>
 #include <string_view>
+
 #include <windows.h>
 
 namespace flow::editor::menu::property {
-
 [[nodiscard]] inline std::wstring
 remove_suffix(std::wstring_view s) {
     const auto pos = s.rfind(L':');
@@ -55,5 +55,4 @@ set_clipboard_text(const std::wstring &text) {
 
     return true;
 }
-
 }  // namespace flow::editor::menu::property

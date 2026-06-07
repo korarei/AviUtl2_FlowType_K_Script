@@ -64,7 +64,7 @@ copy_value(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const wch
             return;
         }
 
-        const auto index = edit->get_focus_object_section();
+        auto index = edit->get_focus_object_section();
 
         if (index < 0) {
             logger->error(logger, L"Failed to get the focus section");
@@ -88,7 +88,8 @@ copy_value(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const wch
                 break;
         }
 
-        auto values = props | std::views::split(',');
+        const auto sep = props.find('|');
+        auto values = props.substr(0, sep) | std::views::split(',');
         auto remaining = values | std::views::drop(1);
 
         if (remaining.begin() == remaining.end()) {
@@ -97,6 +98,8 @@ copy_value(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const wch
             // 中間点無視
             double dummy;
             if (!string::to_number(std::string_view(*(values | std::views::drop(2)).begin()), dummy)) {
+                index = 0;
+
                 switch (ctx->scope) {
                     case TargetRange::All:
                     case TargetRange::Subsequent:
@@ -115,7 +118,7 @@ copy_value(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const wch
 
         const std::string_view src(*(values | std::views::drop(index)).begin());
 
-        const auto result = std::ranges::to<std::string>(
+        auto result = std::ranges::to<std::string>(
                 values | std::views::enumerate | std::views::transform([=](auto &&pair) -> std::string_view {
                     const auto [i, v] = pair;
                     // トラックバー: [0, n]
@@ -124,12 +127,11 @@ copy_value(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const wch
                 })
                 | std::views::join_with(','));
 
+        if (sep != std::string_view::npos)
+            result += props.substr(sep);
+
         if (edit->set_object_item_value(ctx->handle, ctx->fx, ctx->prop, result.c_str()))
-            logger->info(
-                    logger,
-                    std::format(
-                            L"Updated '{}:{}' to '{}'", ctx->fx, ctx->prop, string::to_wstring(string::as_utf8(result)))
-                            .c_str());
+            logger->info(logger, std::format(L"Updated '{}:{}'", ctx->fx, ctx->prop).c_str());
     });
 }
 
@@ -173,7 +175,7 @@ invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
             return;
         }
 
-        const auto index = edit->get_focus_object_section();
+        auto index = edit->get_focus_object_section();
 
         if (index < 0) {
             logger->error(logger, L"Failed to get the focus section");
@@ -198,7 +200,8 @@ invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
                 break;
         }
 
-        auto values = props | std::views::split(',');
+        const auto sep = props.find('|');
+        auto values = props.substr(0, sep) | std::views::split(',');
         auto remaining = values | std::views::drop(1);
 
         if (remaining.begin() == remaining.end()) {
@@ -207,6 +210,8 @@ invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
             // 中間点無視
             double dummy;
             if (!string::to_number(std::string_view(*(values | std::views::drop(2)).begin()), dummy)) {
+                index = 0;
+
                 switch (ctx->scope) {
                     case TargetRange::All:
                     case TargetRange::Subsequent:
@@ -234,7 +239,7 @@ invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
                             const auto [i, v] = pair;
                             const std::string_view sv(v);
 
-                            if (!sv.empty() && i >= st && i <= ed)
+                            if (!sv.empty() && i >= st && i <= ed && !sv.starts_with('0'))
                                 return sv.starts_with("-") ? std::string(sv.substr(1uz)) : "-" + std::string(sv);
 
                             return std::string(sv);
@@ -256,12 +261,11 @@ invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
                 break;
         }
 
+        if (sep != std::string_view::npos)
+            result += props.substr(sep);
+
         if (edit->set_object_item_value(ctx->handle, ctx->fx, ctx->prop, result.c_str()))
-            logger->info(
-                    logger,
-                    std::format(
-                            L"Updated '{}:{}' to '{}'", ctx->fx, ctx->prop, string::to_wstring(string::as_utf8(result)))
-                            .c_str());
+            logger->info(logger, std::format(L"Updated '{}:{}'", ctx->fx, ctx->prop).c_str());
     });
 }
 }  // namespace
