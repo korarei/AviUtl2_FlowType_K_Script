@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cstdint>
 #include <format>
 #include <ranges>
 #include <string>
@@ -26,7 +25,7 @@ enum class TargetRange {
 };
 
 constexpr void
-copy_value(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
+overwrite_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
     constexpr std::array subjects{
             EDIT_HANDLE::EFFECT_ITEM_TYPE_INTEGER,
             EDIT_HANDLE::EFFECT_ITEM_TYPE_NUMBER,
@@ -65,58 +64,60 @@ copy_value(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const wch
             return;
         }
 
-        auto index = edit->get_focus_object_section();
+        auto index = edit->get_focus_object_section(), num = edit->get_object_section_num(ctx->handle);
 
         if (index < 0) {
             logger->error(logger, L"Failed to get the focus section");
             return;
         }
 
+        const auto sep = props.find('|');
+        const auto data = props.substr(0, sep);
+        const auto cfg = sep != std::string_view::npos ? props.substr(sep) : std::string_view{};
+        auto values = data | std::views::split(',');
+
+        auto remaining = values | std::views::drop(1);
+        if (remaining.begin() == remaining.end())
+            return;
+
+        if (ctx->type == EDIT_HANDLE::EFFECT_ITEM_TYPE_CHECK) {
+            num -= 1;
+
+            if (std::ranges::count(data, ',') != num)
+                return;
+
+            if (!cfg.empty()) {
+                int flag;
+                if (string::to_number(cfg.substr(1uz, cfg.find('|', 1uz) - 1uz), flag) && (flag & 1) == 0)
+                    return;
+            }
+        } else {
+            const int n = static_cast<int>(std::ranges::count(data, ','));
+
+            if (n != 3 && n != num + 2)
+                return;
+
+            if (n == 3 && num > 1) {
+                int flag;
+                if (string::to_number(data.substr(data.rfind(',') + 1), flag) && (flag & 4) != 0)
+                    index = 0, num = 1;
+            }
+        }
+
         int st = 0, ed = 0;
 
         switch (ctx->scope) {
             case TargetRange::All:
-                ed = edit->get_object_section_num(ctx->handle);
+                ed = num;
                 break;
             case TargetRange::Subsequent:
-                st = index;
-                ed = edit->get_object_section_num(ctx->handle);
+                st = index, ed = num;
                 break;
             case TargetRange::Preceding:
                 ed = index;
                 break;
             default:
                 break;
-        }
-
-        const auto sep = props.find('|');
-        const auto cfg = sep != std::string_view::npos ? props.substr(sep) : std::string_view{};
-        auto values = props.substr(0, sep) | std::views::split(',');
-        auto remaining = values | std::views::drop(1);
-
-        if (remaining.begin() == remaining.end()) {
-            return;
-        } else if (ctx->type == EDIT_HANDLE::EFFECT_ITEM_TYPE_CHECK && sep != std::string_view::npos) {
-            int flag;
-            if (string::to_number(cfg.substr(1uz, cfg.find('|', 1uz) - 1uz), flag)
-                && (static_cast<uint32_t>(flag) & 1u) == 0u)
-                return;
-        } else {
-            // 中間点無視
-            double dummy;
-            if (!string::to_number(std::string_view(*(values | std::views::drop(2)).begin()), dummy)) {
-                index = 0;
-
-                switch (ctx->scope) {
-                    case TargetRange::All:
-                    case TargetRange::Subsequent:
-                        st = 0, ed = 1;
-                        break;
-                    case TargetRange::Preceding:
-                    case TargetRange::Current:
-                        return;
-                }
-            }
         }
 
         auto targets = values | std::views::take(ed + 1) | std::views::drop(st);
@@ -128,8 +129,6 @@ copy_value(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const wch
         auto result = std::ranges::to<std::string>(
                 values | std::views::enumerate | std::views::transform([=](auto &&pair) -> std::string_view {
                     const auto [i, v] = pair;
-                    // トラックバー: [0, n]
-                    // チェックボックス: [0, n - 1] (これ以降の要素がないのでトラックバーと同一で可)
                     return i >= st && i <= ed ? src : std::string_view(v);
                 })
                 | std::views::join_with(','));
@@ -173,7 +172,7 @@ invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
         return;
 
     editor->call_edit_section_param(&ctx, [](void *param, EDIT_SECTION *edit) {
-        const auto *ctx = static_cast<const Context *>(param);
+        auto *ctx = static_cast<Context *>(param);
 
         const auto props = string::as_string_view(edit->get_object_item_value(ctx->handle, ctx->fx, ctx->prop));
 
@@ -182,60 +181,63 @@ invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
             return;
         }
 
-        auto index = edit->get_focus_object_section();
-        const auto num = edit->get_object_section_num(ctx->handle);
+        auto index = edit->get_focus_object_section(), num = edit->get_object_section_num(ctx->handle);
 
         if (index < 0) {
             logger->error(logger, L"Failed to get the focus section");
             return;
         }
 
-        int st = 0, ed = 0;
+        const auto sep = props.find('|');
+        const auto data = props.substr(0, sep);
+        const auto cfg = sep != std::string_view::npos ? props.substr(sep) : std::string_view{};
+        auto values = data | std::views::split(',');
 
-        switch (ctx->scope) {
-            case TargetRange::Current:
-                st = ed = index;
-                break;
-            case TargetRange::All:
-                ed = num;
-                break;
-            case TargetRange::Subsequent:
-                st = index;
-                ed = num;
-                break;
-            case TargetRange::Preceding:
-                ed = index;
-                break;
+        auto remaining = values | std::views::drop(1);
+        if (remaining.begin() == remaining.end())
+            index = num = 0;
+
+        if (ctx->type == EDIT_HANDLE::EFFECT_ITEM_TYPE_CHECK) {
+            num -= 1;
+
+            if (std::ranges::count(data, ',') != num)
+                return;
+
+            if (!cfg.empty()) {
+                int flag;
+                if (string::to_number(cfg.substr(1uz, cfg.find('|', 1uz) - 1uz), flag) && (flag & 1) == 0)
+                    ctx->scope = TargetRange::All;
+            }
+        } else {
+            const int n = static_cast<int>(std::ranges::count(data, ','));
+
+            if (n < 3) {
+                index = num = 0;
+            } else if (n == 3 && num > 1) {
+                int flag;
+                if (string::to_number(data.substr(data.rfind(',') + 1), flag) && (flag & 4) != 0)
+                    index = 0, num = 1;
+            } else if (n != num + 2) {
+                return;
+            }
         }
 
-        const auto sep = props.find('|');
-        const auto cfg = sep != std::string_view::npos ? props.substr(sep) : std::string_view{};
-        auto values = props.substr(0, sep) | std::views::split(',');
-        auto remaining = values | std::views::drop(1);
+        int st = 0, ed = 0;
 
-        if (remaining.begin() == remaining.end()) {
-            st = ed = 0;
-        } else if (ctx->type == EDIT_HANDLE::EFFECT_ITEM_TYPE_CHECK && sep != std::string_view::npos) {
-            int flag;
-            if (!string::to_number(cfg.substr(1uz, cfg.find('|', 1uz) - 1uz), flag)
-                || (static_cast<uint32_t>(flag) & 1u) == 0u)
-                st = 0, ed = num - 1;
-        } else {
-            // 中間点無視
-            double dummy;
-            if (!string::to_number(std::string_view(*(values | std::views::drop(2)).begin()), dummy)) {
-                index = 0;
-
-                switch (ctx->scope) {
-                    case TargetRange::All:
-                    case TargetRange::Subsequent:
-                        st = 0, ed = 1;
-                        break;
-                    case TargetRange::Current:
-                    case TargetRange::Preceding:
-                        st = ed = 0;
-                        break;
-                }
+        if (num != 0) {
+            switch (ctx->scope) {
+                case TargetRange::Current:
+                    st = ed = index;
+                    break;
+                case TargetRange::All:
+                    ed = num;
+                    break;
+                case TargetRange::Subsequent:
+                    st = index, ed = num;
+                    break;
+                case TargetRange::Preceding:
+                    ed = index;
+                    break;
             }
         }
 
@@ -291,27 +293,27 @@ init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
     ::editor = edit_handle;
 
     host->register_object_item_menu_param(
-            L"FlowType_K\\値を揃える\\全ての区間",
+            L"FlowType_K\\現在値で上書き\\全ての区間",
             false,
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
-                copy_value(TargetRange::All, handle, fx, prop);
+                overwrite_values(TargetRange::All, handle, fx, prop);
             });
 
     host->register_object_item_menu_param(
-            L"FlowType_K\\値を揃える\\以前の区間",
+            L"FlowType_K\\現在値で上書き\\以前の区間",
             false,
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
-                copy_value(TargetRange::Preceding, handle, fx, prop);
+                overwrite_values(TargetRange::Preceding, handle, fx, prop);
             });
 
     host->register_object_item_menu_param(
-            L"FlowType_K\\値を揃える\\以降の区間",
+            L"FlowType_K\\現在値で上書き\\以降の区間",
             false,
             nullptr,
             []([[maybe_unused]] void *param, OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
-                copy_value(TargetRange::Subsequent, handle, fx, prop);
+                overwrite_values(TargetRange::Subsequent, handle, fx, prop);
             });
 
     host->register_object_item_menu_param(

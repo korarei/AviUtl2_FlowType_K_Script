@@ -8,6 +8,7 @@
 > - `Motion@FlowType_K` で `Echo::Count` を1つ小さく設定
 > - `Echo@FlowType_K` で `Count` を1つ小さく設定
 
+- 一部プロパティメニュー名の変更
 - `Repeat@FlowType_K` を追加
 - プロパティメニューに`プロパティ名をコピー`を追加
 - `Motion@FlowType_K` に `Offset` を追加

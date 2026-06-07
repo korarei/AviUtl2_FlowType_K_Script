@@ -15,6 +15,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 - Text\\Motion@FlowType_K: 全自動リリックモーション
 - Text\\Island@FlowType_K: パーツ分解
 - Text\\Kerning@FlowType_K: 全自動カーニング
+- Text\\Repeat@FlowType_K: 高機能画像ループ
 - Text\\Trim@FlowType_K: 余白除去
 - Text\\Deform@FlowType_K: 変形
 - Text\\Align@FlowType_K: 整列
@@ -28,9 +29,9 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
 プロパティメニュー (オブジェクト設定項目を右クリック)
 
-- FlowType_K\\値を揃える\\全ての区間: 現在値を全ての区間にコピー
-- FlowType_K\\値を揃える\\以前の区間: 現在値を以前の区間にコピー
-- FlowType_K\\値を揃える\\以降の区間: 現在値を以降の区間にコピー
+- FlowType_K\\現在値で上書き\\全ての区間: 現在値を全ての区間にコピー
+- FlowType_K\\現在値で上書き\\以前の区間: 現在値を以前の区間にコピー
+- FlowType_K\\現在値で上書き\\以降の区間: 現在値を以降の区間にコピー
 - FlowType_K\\値を反転\\現在の区間: 現在値を反転 (符号，ON/Off)
 - FlowType_K\\値を反転\\全ての区間: 全ての区間の値を反転 (符号，ON/Off)
 - FlowType_K\\値を反転\\以前の区間: 以前の区間の値を反転 (符号，ON/Off)
@@ -661,7 +662,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
 ### プロパティメニュー
 
-#### FlowType_K\\値を揃える
+#### FlowType_K\\現在値で上書き
 
 現在区間の値を選択した区間の値へコピーする．
 
