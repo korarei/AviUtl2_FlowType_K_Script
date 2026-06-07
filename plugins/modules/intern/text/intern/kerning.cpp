@@ -108,6 +108,9 @@ shift(SCRIPT_MODULE_PARAM *param) {
         if (line.empty())
             continue;
 
+        std::vector<Eigen::Vector2d> row;
+        row.reserve(line.size());
+
         hb_buffer_reset(buffer.get());
         hb_buffer_add_utf8(buffer.get(), line.data(), static_cast<int>(line.size()), 0, static_cast<int>(line.size()));
         hb_buffer_set_direction(buffer.get(), direction);
@@ -125,6 +128,7 @@ shift(SCRIPT_MODULE_PARAM *param) {
         for (uint32_t i = 0u; i < count; ++i) {
             auto it = line.data() + info[i].cluster;
             const auto end = line.data() + line.size();
+
             utf8::utfchar32_t cp = 0;
             try {
                 cp = utf8::next(it, end);
@@ -140,8 +144,7 @@ shift(SCRIPT_MODULE_PARAM *param) {
             hb_font_add_glyph_origin_for_direction(font.get(), info[i].codepoint, direction, &origin.x(), &origin.y());
             const Eigen::Vector2d offset((pos[i].x_offset + origin.x()) / 64.0, -(pos[i].y_offset + origin.y()) / 64.0);
 
-            Eigen::Vector2d result = actual - nominal + offset;
-            param->push_result_array_double(result.data(), 2);
+            row.emplace_back(actual - nominal + offset);
 
             if (direction == HB_DIRECTION_LTR)
                 nominal.x() += hb_font_get_glyph_h_advance(font.get(), info[i].codepoint) / 64.0;
@@ -150,6 +153,54 @@ shift(SCRIPT_MODULE_PARAM *param) {
 
             actual.x() += pos[i].x_advance / 64.0;
             actual.y() -= pos[i].y_advance / 64.0;
+        }
+
+        if (!row.empty()) {
+            switch (alignment) {
+                case 1:
+                case 4:
+                case 7: {
+                    const auto origin = row.back().x() * 0.5;
+                    for (auto &p : row) {
+                        p.x() -= origin;
+                        param->push_result_array_double(p.data(), 2);
+                    }
+                    break;
+                }
+                case 2:
+                case 5:
+                case 8: {
+                    const auto &origin = row.back().x();
+                    for (auto &p : row) {
+                        p.x() -= origin;
+                        param->push_result_array_double(p.data(), 2);
+                    }
+                    break;
+                }
+                case 10:
+                case 13:
+                case 16: {
+                    const auto origin = row.back().y() * 0.5;
+                    for (auto &p : row) {
+                        p.y() -= origin;
+                        param->push_result_array_double(p.data(), 2);
+                    }
+                    break;
+                }
+                case 11:
+                case 14:
+                case 17: {
+                    const auto &origin = row.back().y();
+                    for (auto &p : row) {
+                        p.y() -= origin;
+                        param->push_result_array_double(p.data(), 2);
+                    }
+                    break;
+                }
+                default:
+                    for (auto &p : row) param->push_result_array_double(p.data(), 2);
+                    break;
+            }
         }
     }
 }

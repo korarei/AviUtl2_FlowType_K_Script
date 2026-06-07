@@ -169,6 +169,7 @@ layout_text(const std::string &text, const std::string &name, double size, std::
         for (uint32_t i = 0u; i < count; ++i) {
             auto it = line.data() + info[i].cluster;
             const auto end = line.data() + line.size();
+
             utf8::utfchar32_t cp = 0;
             try {
                 cp = utf8::next(it, end);
@@ -202,7 +203,7 @@ layout_text(const std::string &text, const std::string &name, double size, std::
                 case 2:
                 case 5:
                 case 8: {
-                    const auto origin = nominal.x();
+                    const auto &origin = nominal.x();
                     for (size_t i = 0uz; i < n; ++i) row[i].x() = row[i + 1uz].x() - origin;
                     row[n].x() = 0.0;
                     break;
@@ -218,7 +219,7 @@ layout_text(const std::string &text, const std::string &name, double size, std::
                 case 11:
                 case 14:
                 case 17: {
-                    const auto origin = nominal.y();
+                    const auto &origin = nominal.y();
                     for (size_t i = 0uz; i < n; ++i) row[i].y() = row[i + 1uz].y() - origin;
                     row[n].y() = 0.0;
                     break;
