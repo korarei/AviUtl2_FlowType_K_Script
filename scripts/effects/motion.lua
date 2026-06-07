@@ -61,11 +61,12 @@ local xform_target_local_space = true --checksection@xform_target_local_space:Tr
 local xform_target_world_space = false --checksection@xform_target_world_space:Transform::Target::World Space,false
 --group:Blink,false
 local blink_duration = 0.0 --track@blink_duration:Blink::Duration,0,10000,0,0.001,---
-local blink_steps = 2 --track@blink_steps:Blink::Steps,2,128,2,1
 --separator:Opacity
+local blink_opacity_steps = 2 --track@blink_opacity_steps:Blink::Opacity::Steps,2,128,2,1
 local blink_opacity_min = 0.0 --track@blink_opacity_min:Blink::Opacity::Minimum,0,100,0,0.01
 local blink_opacity_max = 100.0 --track@blink_opacity_max:Blink::Opacity::Maximum,0,100,100,0.01
 --separator:Scale
+local blink_scale_steps = 2 --track@blink_scale_steps:Blink::Scale::Steps,2,128,2,1
 local blink_scale_min = 100.0 --track@blink_scale_min:Blink::Scale::Minimum,-10000,10000,100,0.01
 local blink_scale_max = 100.0 --track@blink_scale_max:Blink::Scale::Maximum,-10000,10000,100,0.01
 --separator:Edge Detection
@@ -451,12 +452,12 @@ do
                     local hx, hy, hz, _ = hash4d(i, n, seed + 2, t * FPS * 100.0)
 
                     if should_blink_opacity then
-                        local r = floor(hx * blink_steps) / (blink_steps - 1)
+                        local r = floor(hx * blink_opacity_steps) / (blink_opacity_steps - 1)
                         obj.alpha = lerp(blink_opacity_min, blink_opacity_max, r)
                     end
 
                     if should_blink_scale then
-                        local r = floor(hy * blink_steps) / (blink_steps - 1)
+                        local r = floor(hy * blink_scale_steps) / (blink_scale_steps - 1)
                         local scale = lerp(blink_scale_min, blink_scale_max, r)
                         obj.sx = scale
                         obj.sy = scale

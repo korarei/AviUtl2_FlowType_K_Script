@@ -155,9 +155,8 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
   要素の点滅 (ブリンク) 効果やエッジ抽出を設定する．
 
   - Blink::Duration: 点滅アニメーションの時間を指定
-  - Blink::Steps: 点滅の段階数 (ステップ数) を指定
-  - Blink::Opacity::Minimum / Maximum: 点滅時の不透明度の最小値と最大値を指定
-  - Blink::Scale::Minimum / Maximum: 点滅時のスケールの最小値と最大値を指定
+  - Blink::Opacity::Steps / Minimum / Maximum: 点滅時の不透明度のステップ数，最小値，最大値を指定
+  - Blink::Scale::Steps / Minimum / Maximum: 点滅時のスケールのステップ数，最小値，最大値を指定
   - Blink::Edge Detection::Intensity / Threshold: エッジ抽出の強度としきい値を指定
   - Blink::Characters::Pool / Scale: 置換する文字を指定
 
@@ -571,11 +570,11 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
   - Words: 単語単位
   - Lines: 行単位
 - Duration: アニメーションの時間を指定
-- Steps: 点滅の段階数 (ステップ数) を指定
 
 - <details>
   <summary>Opacity</summary>
 
+  - Opacity::Steps: 点滅の段階数 (ステップ数) を指定
   - Opacity::Minimum: 不透明度の最小値を指定
   - Opacity::Maximum: 不透明度の最大値を指定
 
@@ -584,6 +583,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 - <details>
   <summary>Scale</summary>
 
+  - Scale::Steps: 点滅の段階数 (ステップ数) を指定
   - Scale::Minimum: スケールの最小値を指定
   - Scale::Maximum: スケールの最大値を指定
 
@@ -608,6 +608,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 - <details>
   <summary>Color</summary>
 
+  - Color::Steps: 点滅の段階数 (ステップ数) を指定
   - Color::Source: 色付けのソースを指定
     - Image: 画像ファイル
     - Layer: 特定のレイヤー

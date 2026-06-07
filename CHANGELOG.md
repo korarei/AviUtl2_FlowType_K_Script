@@ -8,6 +8,12 @@
 > - `Motion@FlowType_K` で `Echo::Count` を1つ小さく設定
 > - `Echo@FlowType_K` で `Count` を1つ小さく設定
 
+> [!CAUTION]
+> 点滅の仕様変更に伴い，既存プロジェクトを再読み込みすると `Motion@FlowType_K` と `Blink@FlowType_K` で 点滅ステップ数がリセットされる．
+> そのため，以下の操作を行うことを推奨する．
+> - `Motion@FlowType_K` でステップ数を再設定
+> - `Blink@FlowType_K` でステップ数を再設定
+
 - 一部プロパティメニュー名の変更
 - `Repeat@FlowType_K` を追加
 - プロパティメニューに`プロパティ名をコピー`と`参照式をコピー`を追加
@@ -16,6 +22,7 @@
 - `Kerning@FlowType_K` に `Limit Effects Below` を追加
 - `Blink@FlowType_K` に `Based On` を追加
 - `Island@FlowType_K` で `Time Offset::Order` によって個別オブジェクトのインデックス付与順が変わるように変更
+- `Motion@FlowType_K` と `Blink@FlowType_K` で 点滅ステップ数を個別に設定できるように変更 (破壊的)
 - キャッシュ処理の修正
 - テキストオブジェクトの情報を必要とするエフェクトをフィルタ効果やグループ制御からかけれるように修正
 - 出力中はオーダー順序を表示しないように修正

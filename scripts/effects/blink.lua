@@ -7,11 +7,12 @@
 --#define BASED_ON Whole=-2,Objects=-1,Characters=0,Characters Excluding Spaces=1,Words=2,Lines=3
 local based_on = 0 --select@based_on:Based On,${BASED_ON}
 local duration = 0.0 --track@duration:Duration,-10000,10000,8,0.001,---
-local steps = 2 --track@steps:Steps,2,128,2,1
 --group:Opacity,true
+local opacity_steps = 2 --track@opacity_steps:Opacity::Steps,2,128,2,1
 local opacity_min = 0.0 --track@opacity_min:Opacity::Minimum,0,100,0,0.01
 local opacity_max = 100.0 --track@opacity_max:Opacity::Maximum,0,100,100,0.01
 --group:Scale,false
+local scale_steps = 2 --track@scale_steps:Scale::Steps,2,128,2,1
 local scale_min = 100.0 --track@scale_min:Scale::Minimum,-10000,10000,100,0.01
 local scale_max = 100.0 --track@scale_max:Scale::Maximum,-10000,10000,100,0.01
 --group:Edge Detection,false
@@ -21,6 +22,7 @@ local edge_threshold = -100.0 --track@edge_threshold:Edge Detection::Threshold,-
 local characters_pool = "" --string@characters_pool:Characters::Pool,
 local characters_scale = 100.0 --track@characters_scale:Characters::Scale,0,1000,100,0.01
 --group:Color,false
+local color_steps = 2 --track@color_steps:Color::Steps,2,128,2,1
 local color_source = 0 --select@color_source:Color::Source,Image=0,Layer=1
 local color_image = "" --file@color_image:Color::Image,""
 local color_layer = 0 --track@color_layer:Color::Layer,-100,100,0,1,---
@@ -219,11 +221,11 @@ do
         local hx, hy, hz, hw = hash4d(i, n, seed + 1, FPS * TIME * 100.0)
 
         if should_blink_opacity then
-            obj.alpha = lerp(opacity_min, opacity_max, floor(hx * steps) / (steps - 1))
+            obj.alpha = lerp(opacity_min, opacity_max, floor(hx * opacity_steps) / (opacity_steps - 1))
         end
 
         if should_blink_scale then
-            local r = floor(hy * steps) / (steps - 1)
+            local r = floor(hy * scale_steps) / (scale_steps - 1)
             local scale = lerp(scale_min, scale_max, r)
             obj.sx = scale
             obj.sy = scale
@@ -263,7 +265,7 @@ do
 
         if should_load_lut then
             local ok, e = pcall(function()
-                local r = floor(hw * steps) / (steps - 1)
+                local r = floor(hw * color_steps) / (color_steps - 1)
 
                 if not copybuffer("cache:tmp", "object") then
                     error("Failed to copy buffer")
