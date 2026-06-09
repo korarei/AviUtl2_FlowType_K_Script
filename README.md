@@ -150,7 +150,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
   - Blink::Opacity::Steps / Minimum / Maximum: 点滅時の不透明度のステップ数，最小値，最大値を指定
   - Blink::Scale::Steps / Minimum / Maximum: 点滅時のスケールのステップ数，最小値，最大値を指定
   - Blink::Edge Detection::Intensity / Threshold: エッジ抽出の強度としきい値を指定
-  - Blink::Characters::Pool / Scale: 置換する文字を指定
+  - Blink::Characters::Pool / Font / Scale: 置換する文字を指定 (例: `█▓▒░`)
 
   </details>
 
@@ -585,7 +585,8 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 - <details>
   <summary>Characters</summary>
 
-  - Characters::Pool: 置換する文字を指定
+  - Characters::Pool: 置換する文字を指定 (例: `█▓▒░`)
+  - Characters::Font: 置換に使用するフォントを指定
   - Characters::Scale: 文字のスケールを指定
 
   </details>
