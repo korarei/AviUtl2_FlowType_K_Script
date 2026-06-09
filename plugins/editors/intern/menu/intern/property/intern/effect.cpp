@@ -17,7 +17,7 @@ namespace string = flow::string;
 using Object = flow::alias::Object;
 
 constinit LOG_HANDLE *logger = nullptr;
-constinit EDIT_HANDLE *editor = nullptr;
+constinit EDIT_HANDLE *context = nullptr;
 
 enum class CopyFormat {
     Ini,
@@ -69,7 +69,7 @@ copy_fx(CopyFormat format, EDIT_SECTION *edit, OBJECT_HANDLE handle, const wchar
                 std::unordered_map<std::string, int> type;
             } ctx{handle, fx, {}};
 
-            editor->enum_effect_item(
+            context->enum_effect_item(
                     flow::editor::menu::property::remove_suffix(fx).c_str(),
                     &ctx,
                     [](void *param, const wchar_t *prop, int type) {
@@ -180,7 +180,7 @@ namespace flow::editor::menu::property::effect {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
     logger = log_handle;
-    ::editor = edit_handle;
+    context = edit_handle;
 
     host->register_object_item_menu(
             L"FlowType_K\\エフェクトをコピー\\エイリアス形式 (INI 形式)",

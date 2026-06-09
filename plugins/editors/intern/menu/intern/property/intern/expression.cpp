@@ -14,7 +14,7 @@ namespace {
 namespace string = flow::string;
 
 constinit LOG_HANDLE *logger = nullptr;
-constinit EDIT_HANDLE *editor = nullptr;
+constinit EDIT_HANDLE *context = nullptr;
 
 enum class ReferenceScope {
     Local,
@@ -39,7 +39,7 @@ copy_prop_name(ReferenceScope target, OBJECT_HANDLE handle, const wchar_t *fx, c
                 int layer;
             } ctx{handle, 0};
 
-            editor->call_edit_section_param(&ctx, [](void *param, EDIT_SECTION *edit) {
+            context->call_edit_section_param(&ctx, [](void *param, EDIT_SECTION *edit) {
                 auto *ctx = static_cast<Context *>(param);
 
                 ctx->layer = edit->get_object_layer_frame(ctx->handle).layer + 1;
@@ -70,7 +70,7 @@ copy_expression(OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
         int type;
     } ctx{handle, fx, prop, 0};
 
-    if (!editor->enum_effect_item(
+    if (!context->enum_effect_item(
                 flow::editor::menu::property::remove_suffix(fx).c_str(),
                 &ctx,
                 [](void *param, const wchar_t *prop, int type) {
@@ -84,7 +84,7 @@ copy_expression(OBJECT_HANDLE handle, const wchar_t *fx, const wchar_t *prop) {
     if (!std::ranges::contains(subjects, ctx.type))
         return;
 
-    editor->call_edit_section_param(&ctx, [](void *param, EDIT_SECTION *edit) {
+    context->call_edit_section_param(&ctx, [](void *param, EDIT_SECTION *edit) {
         const auto *ctx = static_cast<const Context *>(param);
 
         const auto props = string::as_string_view(edit->get_object_item_value(ctx->handle, ctx->fx, ctx->prop));
@@ -126,7 +126,7 @@ namespace flow::editor::menu::property::expression {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
     logger = log_handle;
-    ::editor = edit_handle;
+    context = edit_handle;
 
     host->register_object_item_menu_param(
             L"FlowType_K\\プロパティ名をコピー\\{プロパティ名}",
