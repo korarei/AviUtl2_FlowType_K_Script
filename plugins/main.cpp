@@ -1,5 +1,8 @@
 #include <windows.h>
 
+#include <filesystem>
+
+#include <config2.h>
 #include <logger2.h>
 #include <plugin2.h>
 
@@ -19,6 +22,7 @@
 
 namespace {
 constinit LOG_HANDLE *logger = nullptr;
+constinit CONFIG_HANDLE *config = nullptr;
 
 constinit COMMON_PLUGIN_TABLE info = {
         .name = L"FlowType_K",
@@ -30,6 +34,11 @@ extern "C" {
 void
 InitializeLogger(LOG_HANDLE *handle) {
     logger = handle;
+}
+
+void
+InitializeConfig(CONFIG_HANDLE *handle) {
+    config = handle;
 }
 
 DWORD
@@ -45,7 +54,7 @@ UninitializePlugin() {
     flow::module::deinit();
 
     flow::regex::RegexCache::reset();
-    flow::font::FontCache::reset();
+    flow::font::FontCache::deinit();
     flow::font::DWrite::reset();
 }
 
@@ -56,6 +65,8 @@ GetCommonPluginTable() {
 
 void
 RegisterPlugin(HOST_APP_TABLE *host) {
+    flow::font::FontCache::init(std::filesystem::path(config->app_data_path) / L"Font");
+
     host->register_clear_cache_handler([]([[maybe_unused]] EDIT_SECTION *edit) {
         flow::regex::RegexCache::reset();
         flow::font::FontCache::reset();

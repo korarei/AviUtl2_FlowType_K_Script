@@ -37,8 +37,7 @@ shift(SCRIPT_MODULE_PARAM *param) {
             {HB_TAG('v', 'k', 'r', 'n'), 1, HB_FEATURE_GLOBAL_START, HB_FEATURE_GLOBAL_END},
     };
 
-    const int n = param->get_param_num();
-    if (n != 4 && n != 5) {
+    if (param->get_param_num() != 7) {
         param->set_error("Function call has wrong argument count");
         return;
     }
@@ -48,6 +47,8 @@ shift(SCRIPT_MODULE_PARAM *param) {
     const auto size = param->get_param_double(2);
     const std::string name = string::as_string(param->get_param_string(3));
     const auto alignment = param->get_param_int(4);
+    const auto is_bold = param->get_param_boolean(5);
+    const auto is_italic = param->get_param_boolean(6);
 
     if (text.empty())
         return;
@@ -61,7 +62,7 @@ shift(SCRIPT_MODULE_PARAM *param) {
 
     HB_Font font = nullptr;
     try {
-        font = FontCache::load(id, name);
+        font = FontCache::load(id, name, is_bold, is_italic);
 
         if (font == nullptr) {
             logger->warn(logger, L"Font file not found");

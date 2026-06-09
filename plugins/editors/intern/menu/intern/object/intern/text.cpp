@@ -96,7 +96,13 @@ shift_object_indices(std::string_view s, int offset = -1) {
 }
 
 constexpr std::vector<Eigen::Vector2d>
-layout_text(const std::string &text, const std::string &name, double size, std::string_view alignment) {
+layout_text(
+        const std::string &text,
+        const std::string &name,
+        double size,
+        std::string_view alignment,
+        bool is_bold,
+        bool is_italic) {
     alignment.remove_suffix(1uz);
 
     int base;
@@ -117,7 +123,7 @@ layout_text(const std::string &text, const std::string &name, double size, std::
     std::vector<Eigen::Vector2d> result;
     result.reserve(text.size() / 2uz);
 
-    HB_Font font = FontCache::load(ID::TextSplit, name);
+    HB_Font font = FontCache::load(ID::TextSplit, name, is_bold, is_italic);
 
     if (font == nullptr)
         throw std::runtime_error("Font file not found");
@@ -380,10 +386,12 @@ split_text(EDIT_SECTION *edit) {
     }
 
     const auto alignment = fx_text.get("文字揃え");
+    const auto is_bold = fx_text.front("B") != "0";
+    const auto is_italic = fx_text.front("I") != "0";
 
     std::vector<Eigen::Vector2d> coords;
     try {
-        coords = layout_text(text + '\n', font, size, alignment);
+        coords = layout_text(text + '\n', font, size, alignment, is_bold, is_italic);
     } catch (const std::exception &e) {
         logger->error(logger, string::to_wstring(string::as_utf8(e.what())).c_str());
         return;

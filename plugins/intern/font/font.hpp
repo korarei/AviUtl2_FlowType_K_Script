@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 
 #include <dwrite_3.h>
@@ -27,14 +28,14 @@ using HB_Buffer = std::unique_ptr<hb_buffer_t, HB_BufferDeleter>;
 
 class DWrite {
 public:
-    [[nodiscard]] static IDWriteFactory3 *get_factory();
+    [[nodiscard]] static IDWriteFactory5 *factory();
     static void reset();
 
 private:
     template <typename T>
     using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-    ComPtr<IDWriteFactory3> factory;
+    ComPtr<IDWriteFactory5> handle;
 
     ~DWrite() { reset(); }
     DWrite();
@@ -85,8 +86,10 @@ private:
 
 class FontCache : private cache::Cache<FontData, std::string> {
 public:
-    [[nodiscard]] static HB_Font load(int64_t id, const std::string &name);
+    static void init(const std::filesystem::path &path);
+    static void deinit();
     static void reset();
+    [[nodiscard]] static HB_Font load(int64_t id, const std::string &name, bool is_bold, bool is_italic);
 
 private:
     template <typename T>
@@ -100,7 +103,9 @@ private:
     FontCache(FontCache &&) = delete;
     FontCache &operator=(FontCache &&) = delete;
 
+    inline static ComPtr<IDWriteFontSet> fonts;
+
     [[nodiscard]] static FontCache &instance();
-    [[nodiscard]] static bool search(IDWriteFontFace3 **face, const std::wstring &name);
+    [[nodiscard]] static bool search(IDWriteFontFace3 **face, const std::wstring &name, bool is_bold, bool is_italic);
 };
 }  // namespace flow::font
