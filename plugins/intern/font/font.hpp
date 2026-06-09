@@ -78,9 +78,6 @@ private:
     using ComPtr = Microsoft::WRL::ComPtr<T>;
     using HB_Blob = std::unique_ptr<hb_blob_t, HB_BlobDeleter>;
 
-    ComPtr<IDWriteFontFileStream> stream = nullptr;
-    const void *fragment = nullptr;
-    void *context = nullptr;
     HB_Blob blob;
 };
 

@@ -29,8 +29,17 @@ DWrite::instance() {
 
 void
 FontData::init(IDWriteFontFileLoader *loader, const void *key, uint32_t size, uint32_t index) {
+    struct Context {
+        ComPtr<IDWriteFontFileStream> stream;
+        void *context;
+    };
+
     if (face != nullptr)
         return;
+
+    ComPtr<IDWriteFontFileStream> stream;
+    const void *fragment = nullptr;
+    void *context = nullptr;
 
     try {
         if (FAILED(loader->CreateStreamFromKey(key, size, &stream)))
@@ -44,19 +53,34 @@ FontData::init(IDWriteFontFileLoader *loader, const void *key, uint32_t size, ui
         if (FAILED(stream->ReadFileFragment(&fragment, 0ull, file_size, &context)) || fragment == nullptr)
             throw std::runtime_error("Failed to read font file fragment");
 
+        auto *ctx = new Context{std::move(stream), context};
         blob = HB_Blob(hb_blob_create(
                 static_cast<const char *>(fragment),
                 static_cast<uint32_t>(file_size),
                 HB_MEMORY_MODE_READONLY,
-                nullptr,
-                nullptr));
-        if (blob == nullptr)
+                ctx,
+                [](void *data) {
+                    auto *ctx = static_cast<Context *>(data);
+                    ctx->stream->ReleaseFileFragment(ctx->context);
+                    delete ctx;
+                }));
+
+        if (blob == nullptr) {
+            delete ctx;
             throw std::runtime_error("Failed to create harfbuzz blob");
+        }
+
+        fragment = nullptr;
+        context = nullptr;
 
         face = HB_Face(hb_face_create(blob.get(), index));
+
         if (face == nullptr)
             throw std::runtime_error("Failed to create harfbuzz face");
     } catch (...) {
+        if (stream != nullptr && fragment != nullptr)
+            stream->ReleaseFileFragment(context);
+
         reset();
         throw;
     }
@@ -66,13 +90,6 @@ void
 FontData::reset() {
     face.reset();
     blob.reset();
-
-    if (stream != nullptr && fragment != nullptr) {
-        stream->ReleaseFileFragment(context);
-        fragment = nullptr;
-        context = nullptr;
-        stream.Reset();
-    }
 }
 
 FontCache &
@@ -90,21 +107,22 @@ FontCache::init(const std::filesystem::path &path) {
         return;
 
     ComPtr<IDWriteFontSet> system;
-    factory->GetSystemFontSet(&system);
+    if (SUCCEEDED(factory->GetSystemFontSet(&system)))
+        builder->AddFontSet(system.Get());
 
-    builder->AddFontSet(system.Get());
+    if (std::filesystem::exists(path) && std::filesystem::is_directory(path)) {
+        for (const auto &entry : std::filesystem::directory_iterator(path)) {
+            const auto &file = entry.path();
+            const auto ext = file.extension();
+            if (ext != L".ttf" && ext != L".otf" && ext != L".ttc" && ext != L".otc")
+                continue;
 
-    for (const auto &entry : std::filesystem::directory_iterator(path)) {
-        const auto &file = entry.path();
-        const auto ext = file.extension();
-        if (ext != L".ttf" && ext != L".otf" && ext != L".ttc" && ext != L".otc")
-            continue;
+            ComPtr<IDWriteFontFile> font;
+            if (FAILED(factory->CreateFontFileReference(file.c_str(), nullptr, &font)))
+                continue;
 
-        ComPtr<IDWriteFontFile> font;
-        if (FAILED(factory->CreateFontFileReference(file.c_str(), nullptr, &font)))
-            continue;
-
-        builder->AddFontFile(font.Get());
+            builder->AddFontFile(font.Get());
+        }
     }
 
     ComPtr<IDWriteFontSet> merged;
@@ -116,6 +134,7 @@ FontCache::init(const std::filesystem::path &path) {
 
 void
 FontCache::deinit() {
+    fonts.Reset();
     instance().cache::Cache<FontData, std::string>::reset();
 }
 
