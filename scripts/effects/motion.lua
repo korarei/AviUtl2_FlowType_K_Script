@@ -74,6 +74,7 @@ local blink_edge_intensity = 100.0 --track@blink_edge_intensity:Blink::Edge Dete
 local blink_edge_threshold = -100.0 --track@blink_edge_threshold:Blink::Edge Detection::Threshold,-100,100,-100,0.01
 --separator:Characters
 local blink_characters_pool = "" --string@blink_characters_pool:Blink::Characters::Pool,
+local blink_characters_font = "Noto Sans JP Black" --font@blink_characters_font:Blink::Characters::Font,Noto Sans JP Black
 local blink_characters_scale = 100.0 --track@blink_characters_scale:Blink::Characters::Scale,0,1000,100,0.01
 --group:Tint,false
 local tint_source = 0 --select@tint_source:Tint::Source,Image=0,Layer=1
@@ -417,11 +418,11 @@ do
                     if handle ~= nil then
                         props = { text.property(handle, frame) }
                     else
-                        props = { max(obj.w, obj.h), 0.0, 0.0, 0.0, "Yu Gothic UI", 0xffffff, 0, 0, 4, false, false }
+                        props = { max(obj.w, obj.h), 0.0, 0.0, 0.0, "", 0xffffff, 0, 0, 4, false, false }
                     end
 
                     obj.setfont(
-                        props[5],
+                        blink_characters_font,
                         props[1] * blink_characters_scale * 0.01,
                         props[8],
                         props[6],
@@ -535,7 +536,7 @@ do
                     string = string,
                     table = table,
                     bit = bit,
-                    setfont = obj.setfont,
+                    setfont = setfont,
                     rand = rand,
                     rand1 = rand1,
                     RGB = RGB,

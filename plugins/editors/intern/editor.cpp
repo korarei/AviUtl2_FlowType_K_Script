@@ -5,8 +5,8 @@
 namespace flow::editor {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *logger) {
-    auto editor = host->create_edit_handle();
+    auto context = host->create_edit_handle();
 
-    menu::init(host, logger, editor);
+    menu::init(host, logger, context);
 }
 }  // namespace flow::editor

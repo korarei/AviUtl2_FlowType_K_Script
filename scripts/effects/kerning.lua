@@ -125,7 +125,7 @@ do
             local kerning = obj.module("Kerning@${PROJECT_NAME}")
 
             local props = { text.property(handle, frame) }
-            t = { kerning.shift(obj.id, content, props[1], props[5], props[9]) }
+            t = { kerning.shift(obj.id, content, props[1], props[5], props[9], props[10], props[11]) }
             _G[KEY_KERNING] = t
         else
             t = _G[KEY_KERNING]

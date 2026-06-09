@@ -15,7 +15,7 @@ namespace {
 namespace string = flow::string;
 
 constinit LOG_HANDLE *logger = nullptr;
-constinit EDIT_HANDLE *editor = nullptr;
+constinit EDIT_HANDLE *context = nullptr;
 
 enum class TargetRange {
     Current,
@@ -40,7 +40,7 @@ overwrite_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, con
         int type;
     } ctx{scope, handle, fx, prop, 0};
 
-    if (!editor->enum_effect_item(
+    if (!context->enum_effect_item(
                 flow::editor::menu::property::remove_suffix(fx).c_str(),
                 &ctx,
                 [](void *param, const wchar_t *prop, int type) {
@@ -54,7 +54,7 @@ overwrite_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, con
     if (!std::ranges::contains(subjects, ctx.type))
         return;
 
-    editor->call_edit_section_param(&ctx, [](void *param, EDIT_SECTION *edit) {
+    context->call_edit_section_param(&ctx, [](void *param, EDIT_SECTION *edit) {
         const auto *ctx = static_cast<const Context *>(param);
 
         const auto props = string::as_string_view(edit->get_object_item_value(ctx->handle, ctx->fx, ctx->prop));
@@ -157,7 +157,7 @@ invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
         int type;
     } ctx{scope, handle, fx, prop, 0};
 
-    if (!editor->enum_effect_item(
+    if (!context->enum_effect_item(
                 flow::editor::menu::property::remove_suffix(fx).c_str(),
                 &ctx,
                 [](void *param, const wchar_t *prop, int type) {
@@ -171,7 +171,7 @@ invert_values(TargetRange scope, OBJECT_HANDLE handle, const wchar_t *fx, const 
     if (!std::ranges::contains(subjects, ctx.type))
         return;
 
-    editor->call_edit_section_param(&ctx, [](void *param, EDIT_SECTION *edit) {
+    context->call_edit_section_param(&ctx, [](void *param, EDIT_SECTION *edit) {
         auto *ctx = static_cast<Context *>(param);
 
         const auto props = string::as_string_view(edit->get_object_item_value(ctx->handle, ctx->fx, ctx->prop));
@@ -290,7 +290,7 @@ namespace flow::editor::menu::property::value {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *log_handle, EDIT_HANDLE *edit_handle) {
     logger = log_handle;
-    ::editor = edit_handle;
+    context = edit_handle;
 
     host->register_object_item_menu_param(
             L"FlowType_K\\現在値で上書き\\全ての区間",

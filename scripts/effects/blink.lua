@@ -20,6 +20,7 @@ local edge_intensity = 100.0 --track@edge_intensity:Edge Detection::Intensity,0,
 local edge_threshold = -100.0 --track@edge_threshold:Edge Detection::Threshold,-100,100,-100,0.01
 --group:Characters,false
 local characters_pool = "" --string@characters_pool:Characters::Pool,
+local characters_font = "Noto Sans JP Black" --font@characters_font:Characters::Font,Noto Sans JP Black
 local characters_scale = 100.0 --track@characters_scale:Characters::Scale,0,1000,100,0.01
 --group:Color,false
 local color_steps = 2 --track@color_steps:Color::Steps,2,128,2,1
@@ -191,11 +192,11 @@ do
             if handle ~= nil then
                 props = { text.property(handle, frame) }
             else
-                props = { max(obj.w, obj.h), 0.0, 0.0, 0.0, "Yu Gothic UI", 0xffffff, 0, 0, 4, false, false }
+                props = { max(obj.w, obj.h), 0.0, 0.0, 0.0, "", 0xffffff, 0, 0, 4, false, false }
             end
 
             obj.setfont(
-                props[5],
+                characters_font,
                 props[1] * characters_scale * 0.01,
                 props[8],
                 props[6],
