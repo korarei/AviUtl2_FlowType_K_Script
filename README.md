@@ -29,27 +29,19 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
 プロパティメニュー (オブジェクト設定項目を右クリック)
 
-- FlowType_K\\現在値で上書き\\全ての区間: 現在値を全ての区間にコピー
-- FlowType_K\\現在値で上書き\\以前の区間: 現在値を以前の区間にコピー
-- FlowType_K\\現在値で上書き\\以降の区間: 現在値を以降の区間にコピー
-- FlowType_K\\値を反転\\現在の区間: 現在値を反転 (符号，ON/Off)
-- FlowType_K\\値を反転\\全ての区間: 全ての区間の値を反転 (符号，ON/Off)
-- FlowType_K\\値を反転\\以前の区間: 以前の区間の値を反転 (符号，ON/Off)
-- FlowType_K\\値を反転\\以降の区間: 以降の区間の値を反転 (符号，ON/Off)
-- FlowType_K\\プロパティ名をコピー\\{プロパティ名}: プロパティ名をクリップボードへコピー
-- FlowType_K\\プロパティ名をコピー\\{エフェクト名}.{プロパティ名}: プロパティ名をクリップボードへコピー
-- FlowType_K\\プロパティ名をコピー\\{レイヤー名}.{エフェクト名}.{プロパティ名}: プロパティ名をクリップボードへコピー
+- FlowType_K\\現在値で上書き: 現在値を指定した区間にコピー
+- FlowType_K\\値を反転: 指定した区間の値を反転 (符号，ON/Off)
+- FlowType_K\\プロパティ名をコピー: 指定した形式でプロパティ名をクリップボードへコピー
 - FlowType_K\\参照式をコピー: 参照式をクリップボードへコピー
 
-- FlowType_K\\エフェクトをコピー\\エイリアス形式 (INI 形式): エフェクトをエイリアス形式でクリップボードへコピー
-- FlowType_K\\エフェクトをコピー\\FlowType_K 形式 (TOML 形式): エフェクトを FlowType_K 形式でクリップボードへコピー
+- FlowType_K\\エフェクトをコピー: 指定した形式でエフェクト情報をクリップボードへコピー
 
 ## 動作確認
 
-- [AviUtl ExEdit2 beta47](https://spring-fragrance.mints.ne.jp/aviutl/)
+- [AviUtl ExEdit2 beta49](https://spring-fragrance.mints.ne.jp/aviutl/)
 
 > [!CAUTION]
-> beta47以降必須．
+> beta49以降必須．
 
 ## 導入・更新・削除
 
@@ -348,13 +340,6 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
   - Tint::Opacity: 不透明度を指定
 
   </details>
-
-- <details>
-  <summary>Effect</summary>
-
-  各要素に対してToml形式で指定したエフェクトをかける．
-
-  - Effect::Parameters: エフェクトのパラメータをToml形式で記述する
 
 - <details>
   <summary>Additional Options</summary>
@@ -686,7 +671,7 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
 計算結果が範囲外になった場合は AviUtl2 の機能により範囲内に丸められる．
 
-- 現在区間
+- 現在の区間
 - 全ての区間
 - 以前の区間
 - 以降の区間
