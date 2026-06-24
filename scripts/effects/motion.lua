@@ -117,6 +117,12 @@ do
     local utils = require("utilities")
     local lerp, clamp, copy_xform, stop = utils.lerp, utils.clamp, utils.copy_xform, utils.stop
 
+    local buffer
+
+    do
+        buffer = require("string.buffer").new()
+    end
+
     local eps = 1.0e-4
 
     local max, min, abs, rad, cos, sin, floor = math.max, math.min, math.abs, math.rad, math.cos, math.sin, math.floor
@@ -509,13 +515,13 @@ do
                 local toml = obj.module("Toml@${PROJECT_NAME}")
 
                 data = { toml.parse("motion::effect", effect_params) }
-                _G[KEY_FX] = data
+                global[KEY_FX] = buffer:reset():encode(data):get()
             else
-                data = _G[KEY_FX]
+                data = buffer:set(global[KEY_FX]):decode()
             end
 
             if INDEX == NUM - 1 then
-                _G[KEY_FX] = nil
+                global[KEY_FX] = nil
             end
 
             if type(data) == "table" then
@@ -606,9 +612,9 @@ do
                             content = text.content(handle):gsub("<.->", "")
 
                             c = utf8.count(content, true)
-                            _G[KEY_COUNT] = c
+                            global[KEY_COUNT] = tostring(c)
                         else
-                            c = _G[KEY_COUNT]
+                            c = tonumber(global[KEY_COUNT])
                         end
 
                         if type(c) == "number" then
@@ -621,7 +627,7 @@ do
                         end
 
                         if INDEX == NUM - 1 then
-                            _G[KEY_COUNT] = nil
+                            global[KEY_COUNT] = nil
                         end
                     end
                 end
@@ -660,9 +666,9 @@ do
                             end
                         end
 
-                        _G[KEY_GROUP] = t
+                        global[KEY_GROUP] = buffer:reset():encode(t):get()
                     else
-                        t = _G[KEY_GROUP]
+                        t = buffer:set(global[KEY_GROUP]):decode()
                     end
 
                     if type(t) == "table" and #t == n then
@@ -673,7 +679,7 @@ do
                     end
 
                     if INDEX == NUM - 1 then
-                        _G[KEY_GROUP] = nil
+                        global[KEY_GROUP] = nil
                     end
                 elseif motion_based_on == -2 then
                     i = 0
@@ -701,9 +707,9 @@ do
                         t[j], t[k] = t[k], t[j]
                     end
 
-                    _G[KEY_ORDER] = t
+                    global[KEY_ORDER] = buffer:reset():encode(t):get()
                 else
-                    t = _G[KEY_ORDER]
+                    t = buffer:set(global[KEY_ORDER]):decode()
                 end
 
                 if type(t) == "table" and #t == n then
@@ -713,7 +719,7 @@ do
                 end
 
                 if INDEX == NUM - 1 then
-                    _G[KEY_ORDER] = nil
+                    global[KEY_ORDER] = nil
                 end
             end
 

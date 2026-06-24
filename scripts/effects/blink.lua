@@ -42,6 +42,12 @@ do
     local utils = require("utilities")
     local lerp, copy_xform, stop = utils.lerp, utils.copy_xform, utils.stop
 
+    local buffer
+
+    do
+        buffer = require("string.buffer").new()
+    end
+
     local text = obj.module("Text@${PROJECT_NAME}")
     local utf8 = obj.module("UTF8@${PROJECT_NAME}")
     local hash = obj.module("Hash@${PROJECT_NAME}")
@@ -111,9 +117,9 @@ do
                     content = text.content(handle):gsub("<.->", "")
 
                     c = utf8.count(content, true)
-                    _G[KEY_COUNT] = c
+                    global[KEY_COUNT] = tostring(c)
                 else
-                    c = _G[KEY_COUNT]
+                    c = tonumber(global[KEY_COUNT])
                 end
 
                 if type(c) == "number" then
@@ -126,7 +132,7 @@ do
                 end
 
                 if INDEX == NUM - 1 then
-                    _G[KEY_COUNT] = nil
+                    global[KEY_COUNT] = nil
                 end
             end
         end
@@ -165,9 +171,9 @@ do
                     end
                 end
 
-                _G[KEY_GROUP] = t
+                global[KEY_GROUP] = buffer:reset():encode(t):get()
             else
-                t = _G[KEY_GROUP]
+                t = buffer:set(global[KEY_GROUP]):decode()
             end
 
             if type(t) == "table" and #t == n then
@@ -178,7 +184,7 @@ do
             end
 
             if INDEX == NUM - 1 then
-                _G[KEY_GROUP] = nil
+                global[KEY_GROUP] = nil
             end
         elseif based_on == -2 then
             i = 0

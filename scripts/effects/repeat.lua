@@ -30,6 +30,12 @@ do
     local utils = require("utilities")
     local clamp, copy_xform, stop = utils.clamp, utils.copy_xform, utils.stop
 
+    local buffer
+
+    do
+        buffer = require("string.buffer").new()
+    end
+
     local ID = obj.effect_id
     local CACHE_IMAGE = "cache:24a8ba19-70d6-4ceb-ad75-b793c122a10b-" .. ID
 
@@ -77,9 +83,9 @@ do
                 obj.setfont(props[5], props[1], props[8], 0, 0, props[10], props[11], props[2], props[3])
 
                 size = { obj.load("text.layout", text.content(handle)) }
-                _G[KEY_SIZE] = size
+                global[KEY_SIZE] = buffer:reset():encode(size):get()
             else
-                size = _G[KEY_SIZE]
+                size = buffer:set(global[KEY_SIZE]):decode()
             end
 
             if type(size) == "table" and #size == 2 then
@@ -90,7 +96,7 @@ do
             end
 
             if INDEX == NUM - 1 then
-                _G[KEY_SIZE] = nil
+                global[KEY_SIZE] = nil
             end
         end
     end

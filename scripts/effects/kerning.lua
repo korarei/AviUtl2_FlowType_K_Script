@@ -64,6 +64,12 @@ do
     local utils = require("utilities")
     local lerp = utils.lerp
 
+    local buffer
+
+    do
+        buffer = require("string.buffer").new()
+    end
+
     local text = obj.module("Text@${PROJECT_NAME}")
 
     local ID = obj.effect_id
@@ -98,9 +104,9 @@ do
         local utf8 = obj.module("UTF8@${PROJECT_NAME}")
 
         c = utf8.count(content, true)
-        _G[KEY_COUNT] = c
+        global[KEY_COUNT] = tostring(c)
     else
-        c = _G[KEY_COUNT]
+        c = tonumber(global[KEY_COUNT])
     end
 
     if type(c) == "number" then
@@ -113,7 +119,7 @@ do
     end
 
     if INDEX == NUM - 1 then
-        _G[KEY_COUNT] = nil
+        global[KEY_COUNT] = nil
     end
 
     local offset = { 0.0, 0.0 }
@@ -126,9 +132,9 @@ do
 
             local props = { text.property(handle, frame) }
             t = { kerning.shift(obj.id, content, props[1], props[5], props[9], props[10], props[11]) }
-            _G[KEY_KERNING] = t
+            global[KEY_KERNING] = buffer:reset():encode(t):get()
         else
-            t = _G[KEY_KERNING]
+            t = buffer:set(global[KEY_KERNING]):decode()
         end
 
         if type(t) == "table" and #t == n then
@@ -138,7 +144,7 @@ do
         end
 
         if INDEX == NUM - 1 then
-            _G[KEY_KERNING] = nil
+            global[KEY_KERNING] = nil
         end
     end
 
@@ -155,9 +161,9 @@ do
                     t[#t + 1] = m[1]
                 end
             end
-            _G[KEY_REGEX] = t
+            global[KEY_REGEX] = buffer:reset():encode(t):get()
         else
-            t = _G[KEY_REGEX]
+            t = buffer:set(global[KEY_REGEX]):decode()
         end
 
         if type(t) == "table" and #t == n then
@@ -167,7 +173,7 @@ do
         end
 
         if INDEX == NUM - 1 then
-            _G[KEY_REGEX] = nil
+            global[KEY_REGEX] = nil
         end
     end
 
