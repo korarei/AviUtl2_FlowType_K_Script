@@ -8,7 +8,7 @@ local kerning_mode = 1 --select@kerning_mode:Kerning Mode=1,None=0,Metrics=1
 --group:Filter,true
 local filter_regex_pattern = "" --string@filter_regex_pattern:Filter::Regex Pattern,
 local filter_capture_group = 0 --track@filter_capture_group:Filter::Capture Group,0,20,0,1
-local should_limit_fx = false --checksection@should_limit_fx:Filter::Limit Effects Below,false
+local should_limit_fx = false --checksection@should_limit_fx:Filter::Limit Effects Below,false,false
 --group:Transform,false
 --separator:Pivot Point
 local xform_pivot_x = 0.0 --track@xform_pivot_x:Transform::Pivot::X,-100000,100000,0,0.01
@@ -44,8 +44,8 @@ local xform_scale_z = 100.0 --track@xform_scale_z:Transform::Scale::Z,-10000,100
 local xform_blend_mode = 0 --select@xform_blend_mode:Transform::Compositing::Blend Mode,${BLEND_MODES}
 local xform_opacity = 100.0 --track@xform_opacity:Transform::Compositing::Opacity,0,100,100,0.01
 --separator:Target
-local xform_target_local_space = true --checksection@xform_target_local_space:Transform::Target::Local Space,true
-local xform_target_world_space = false --checksection@xform_target_world_space:Transform::Target::World Space,false
+local xform_target_local_space = true --checksection@xform_target_local_space:Transform::Target::Local Space,true,false
+local xform_target_world_space = false --checksection@xform_target_world_space:Transform::Target::World Space,false,false
 --group:Tint,false
 local tint_color = nil --color@tint_color:Tint::Color,nil
 local tint_opacity = 100.0 --track@tint_opacity:Tint::Opacity,0,100,100,0.01

@@ -15,7 +15,7 @@ local motion_overlap = 100.0 --track@motion_overlap:Motion::Overlap,0,100,100,0.
 local motion_softness = 0.0 --track@motion_softness:Motion::Softness,0,100,100,0.01
 --track0:Motion::Curve,0,1,0,0.001
 local motion_cutoff = 0.0 --track@motion_cutoff:Motion::Cutoff,-10000,10000,0,0.001
-local motion_should_mask = false --checksection@motion_should_mask:Motion::Mask,false
+local motion_should_mask = false --checksection@motion_should_mask:Motion::Mask,false,false
 --group:Lyric,false
 local lyric_distance = 0.0 --track@lyric_distance:Lyric::Distance,0,10000,0,0.01
 local lyric_stretch = 0.0 --track@lyric_stretch:Lyric::Stretch,-10,10,0,0.001
@@ -28,7 +28,7 @@ local lyric_divisions = 4 --track@lyric_divisions:Lyric::Layout::Divisions,1,36,
 local lyric_selection = 0 --select@lyric_selection:Lyric::Layout::Selection,Random=0,Clockwise=1,Counter-Clockwise=2
 --separator:Dynamics
 local lyric_peak = 1.0 --track@lyric_peak:Lyric::Dynamics::Peak,0,100,1,0.001
-local lyric_should_overshoot = false --checksection@lyric_should_overshoot:Lyric::Dynamics::Overshoot,false
+local lyric_should_overshoot = false --checksection@lyric_should_overshoot:Lyric::Dynamics::Overshoot,false,false
 --group:Transform,false
 --separator:Pivot Point
 local xform_pivot_x = 0.0 --track@xform_pivot_x:Transform::Pivot::X,-100000,100000,0,0.01
@@ -57,8 +57,8 @@ local xform_scale_z = 100.0 --track@xform_scale_z:Transform::Scale::Z,0,10000,10
 --separator:Compositing
 local xform_opacity = 100.0 --track@xform_opacity:Transform::Compositing::Opacity,0,100,100,0.01
 --separator:Target
-local xform_target_local_space = true --checksection@xform_target_local_space:Transform::Target::Local Space,true
-local xform_target_world_space = false --checksection@xform_target_world_space:Transform::Target::World Space,false
+local xform_target_local_space = true --checksection@xform_target_local_space:Transform::Target::Local Space,true,false
+local xform_target_world_space = false --checksection@xform_target_world_space:Transform::Target::World Space,false,false
 --group:Blink,false
 local blink_duration = 0.0 --track@blink_duration:Blink::Duration,0,10000,0,0.001,---
 --separator:Opacity

@@ -18,7 +18,7 @@ auto horizontal = FILTER_ITEM_TRACK(L"Horizontal", 0.0, -1000.0, 1000.0, 0.01);
 auto vertical = FILTER_ITEM_TRACK(L"Vertical", 0.0, -1000.0, 1000.0, 0.01);
 FILTER_ITEM_SELECT::ITEM targets[] = {{L"Pivot Point", 1}, {L"Position", 2}, {L"Both", 3}, {nullptr, 0}};
 auto target = FILTER_ITEM_SELECT(L"Target", 1, targets);
-auto should_overwrite = FILTER_ITEM_CHECK_SECTION(L"Overwrite", false);
+auto should_overwrite = FILTER_ITEM_CHECK_SECTION(L"Overwrite", false, false);
 
 void *props[] = {&horizontal, &vertical, &target, &should_overwrite, nullptr};
 
