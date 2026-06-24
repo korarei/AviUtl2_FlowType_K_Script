@@ -6,7 +6,7 @@
 [![GitHub Release][releases-badge]][releases-url]
 [![AviUtl2 Catalog][catalog-badge]][catalog-url]
 
-AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
+AviUtl ExEdit2 向けテキストアニメーション作成支援ツール．
 
 以下の機能が追加される．
 
@@ -38,10 +38,10 @@ AviUtl ExEdit2向けテキストアニメーション作成支援ツール．
 
 ## 動作確認
 
-- [AviUtl ExEdit2 beta49](https://spring-fragrance.mints.ne.jp/aviutl/)
+- [AviUtl ExEdit2 beta51](https://spring-fragrance.mints.ne.jp/aviutl/)
 
 > [!CAUTION]
-> beta49以降必須．
+> beta50 以降必須．
 
 ## 導入・更新・削除
 
