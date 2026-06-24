@@ -62,7 +62,7 @@ jobs:
 
     - name: Install dependencies & Build extension
       run: |
-        pip install git+https://github.com/korarei/AviUtl2_Astra.git@v0.6.4
+        pip install git+https://github.com/korarei/AviUtl2_Astra.git@v0.6.5
 
         astra release -v '${{ steps.meta.outputs.version }}'
 

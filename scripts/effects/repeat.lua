@@ -30,6 +30,12 @@ do
     local utils = require("utilities")
     local clamp, copy_xform, stop = utils.clamp, utils.copy_xform, utils.stop
 
+    local buffer
+
+    do
+        buffer = require("string.buffer").new()
+    end
+
     local ID = obj.effect_id
     local CACHE_IMAGE = "cache:24a8ba19-70d6-4ceb-ad75-b793c122a10b-" .. ID
 
@@ -62,24 +68,38 @@ do
     local w, h = obj.w, obj.h
 
     if NUM > 1 then
-        local text = obj.module("Text@${PROJECT_NAME}")
-
-        local frame = getvalue("frame_s") + FPS * TIME
-
-        local handle = text.is_text(LAYER, frame)
-        if handle ~= nil then
+        local text = getvalue(LAYER, "テキスト", "テキスト") --[[@as string | nil]]
+        if text ~= nil then
             local KEY_SIZE = "0a5312f4-0ec0-430b-bbf8-2316b0fd3e20-" .. ID
 
             local size
             if INDEX == 0 then
-                local props = { text.property(handle, frame) }
+                local styles = {
+                    ["標準文字"] = 0,
+                    ["影付き文字"] = 1,
+                    ["影付き文字(薄)"] = 2,
+                    ["縁取り文字"] = 3,
+                    ["縁取り文字(細)"] = 4,
+                    ["縁取り文字(太)"] = 5,
+                    ["縁取り文字(角)"] = 6,
+                }
 
-                obj.setfont(props[5], props[1], props[8], 0, 0, props[10], props[11], props[2], props[3])
+                obj.setfont(
+                    getvalue(LAYER, "テキスト", "フォント") --[[@as string]],
+                    getvalue(LAYER, "テキスト", "サイズ") --[[@as number]],
+                    styles[getvalue(LAYER, "テキスト", "文字装飾")],
+                    0,
+                    0,
+                    getvalue(LAYER, "テキスト", "B") ~= "0",
+                    getvalue(LAYER, "テキスト", "I") ~= "0",
+                    getvalue(LAYER, "テキスト", "字間") --[[@as number]],
+                    getvalue(LAYER, "テキスト", "行間") --[[@as number]]
+                )
 
-                size = { obj.load("text.layout", text.content(handle)) }
-                _G[KEY_SIZE] = size
+                size = { obj.load("text.layout", text) }
+                global[KEY_SIZE] = buffer:reset():encode(size):get()
             else
-                size = _G[KEY_SIZE]
+                size = buffer:set(global[KEY_SIZE]):decode()
             end
 
             if type(size) == "table" and #size == 2 then
@@ -90,7 +110,7 @@ do
             end
 
             if INDEX == NUM - 1 then
-                _G[KEY_SIZE] = nil
+                global[KEY_SIZE] = nil
             end
         end
     end

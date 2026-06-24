@@ -8,7 +8,7 @@ local threshold = 0.0 --track@threshold:Threshold,0,100,0,0.01
 local index = -1 --track@index:Index,-1,100,-1,1
 --group:Anchor,true
 local anchor_target = 0 --select@anchor_target:Anchor::Target=1,Pivot Point=0,Position=1
-local anchor_should_overwrite = false --checksection@anchor_should_overwrite:Anchor::Overwrite,false
+local anchor_should_overwrite = false --checksection@anchor_should_overwrite:Anchor::Overwrite,false,false
 --group:Sort,false
 --separator:Order
 local sort_order_primary_axis = 1 --select@sort_order_primary_axis:Sort::Order::Primary Axis=1,X=0,Y=1

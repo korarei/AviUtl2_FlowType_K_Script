@@ -57,8 +57,8 @@ auto scale_z = FILTER_ITEM_TRACK(L"Scale::Z", 100.0, -10000.0, 10000.0, 0.01);
 FILTER_ITEM_TRACK *scale_list[] = {&scale_x, &scale_y, &scale_z, nullptr};
 auto trackgroup_scale = FILTER_ITEM_TRACK_GROUP(L"Group::Scale", scale_list);
 auto group_target = FILTER_ITEM_GROUP(L"Target", true);
-auto target_local_space = FILTER_ITEM_CHECK_SECTION(L"Target::Local Space", true);
-auto target_world_space = FILTER_ITEM_CHECK_SECTION(L"Target::World Space", false);
+auto target_local_space = FILTER_ITEM_CHECK_SECTION(L"Target::Local Space", true, false);
+auto target_world_space = FILTER_ITEM_CHECK_SECTION(L"Target::World Space", false, false);
 auto group_additional_options = FILTER_ITEM_GROUP(L"Additional Options", false);
 auto influence = FILTER_ITEM_TRACK(L"Influence", 100.0, 0.0, 100.0, 0.01);
 

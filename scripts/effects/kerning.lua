@@ -8,7 +8,7 @@ local kerning_mode = 1 --select@kerning_mode:Kerning Mode=1,None=0,Metrics=1
 --group:Filter,true
 local filter_regex_pattern = "" --string@filter_regex_pattern:Filter::Regex Pattern,
 local filter_capture_group = 0 --track@filter_capture_group:Filter::Capture Group,0,20,0,1
-local should_limit_fx = false --checksection@should_limit_fx:Filter::Limit Effects Below,false
+local should_limit_fx = false --checksection@should_limit_fx:Filter::Limit Effects Below,false,false
 --group:Transform,false
 --separator:Pivot Point
 local xform_pivot_x = 0.0 --track@xform_pivot_x:Transform::Pivot::X,-100000,100000,0,0.01
@@ -44,8 +44,8 @@ local xform_scale_z = 100.0 --track@xform_scale_z:Transform::Scale::Z,-10000,100
 local xform_blend_mode = 0 --select@xform_blend_mode:Transform::Compositing::Blend Mode,${BLEND_MODES}
 local xform_opacity = 100.0 --track@xform_opacity:Transform::Compositing::Opacity,0,100,100,0.01
 --separator:Target
-local xform_target_local_space = true --checksection@xform_target_local_space:Transform::Target::Local Space,true
-local xform_target_world_space = false --checksection@xform_target_world_space:Transform::Target::World Space,false
+local xform_target_local_space = true --checksection@xform_target_local_space:Transform::Target::Local Space,true,false
+local xform_target_world_space = false --checksection@xform_target_world_space:Transform::Target::World Space,false,false
 --group:Tint,false
 local tint_color = nil --color@tint_color:Tint::Color,nil
 local tint_opacity = 100.0 --track@tint_opacity:Tint::Opacity,0,100,100,0.01
@@ -64,7 +64,11 @@ do
     local utils = require("utilities")
     local lerp = utils.lerp
 
-    local text = obj.module("Text@${PROJECT_NAME}")
+    local buffer
+
+    do
+        buffer = require("string.buffer").new()
+    end
 
     local ID = obj.effect_id
     local KEY_COUNT = "8973f111-5db5-4890-907d-52539fe55570-" .. ID
@@ -81,15 +85,13 @@ do
 
     influence = influence * 0.01
 
-    local frame = getvalue("frame_s") + FPS * TIME
-
-    local handle = text.is_text(LAYER, frame)
-    if handle == nil then
+    local text = getvalue(LAYER, "テキスト", "テキスト") --[[@as string | nil]]
+    if text == nil then
         print("@error", "'テキスト' effect was not found in the source")
         return
     end
 
-    local content = INDEX == 0 and text.content(handle):gsub("<.->", "") or nil
+    local content = INDEX == 0 and text:gsub("<.->", "") or nil
 
     local i, n = INDEX, NUM
 
@@ -98,9 +100,9 @@ do
         local utf8 = obj.module("UTF8@${PROJECT_NAME}")
 
         c = utf8.count(content, true)
-        _G[KEY_COUNT] = c
+        global[KEY_COUNT] = tostring(c)
     else
-        c = _G[KEY_COUNT]
+        c = tonumber(global[KEY_COUNT])
     end
 
     if type(c) == "number" then
@@ -113,7 +115,7 @@ do
     end
 
     if INDEX == NUM - 1 then
-        _G[KEY_COUNT] = nil
+        global[KEY_COUNT] = nil
     end
 
     local offset = { 0.0, 0.0 }
@@ -124,11 +126,41 @@ do
         if INDEX == 0 then
             local kerning = obj.module("Kerning@${PROJECT_NAME}")
 
-            local props = { text.property(handle, frame) }
-            t = { kerning.shift(obj.id, content, props[1], props[5], props[9], props[10], props[11]) }
-            _G[KEY_KERNING] = t
+            local alignments = {
+                ["左寄せ[上]"] = 0,
+                ["中央揃え[上]"] = 1,
+                ["右寄せ[上]"] = 2,
+                ["左寄せ[中]"] = 3,
+                ["中央揃え[中]"] = 4,
+                ["右寄せ[中]"] = 5,
+                ["左寄せ[下]"] = 6,
+                ["中央揃え[下]"] = 7,
+                ["右寄せ[下]"] = 8,
+                ["縦書 上寄[右]"] = 9,
+                ["縦書 中央[右]"] = 10,
+                ["縦書 下寄[右]"] = 11,
+                ["縦書 上寄[中]"] = 12,
+                ["縦書 中央[中]"] = 13,
+                ["縦書 下寄[中]"] = 14,
+                ["縦書 上寄[左]"] = 15,
+                ["縦書 中央[左]"] = 16,
+                ["縦書 下寄[左]"] = 17,
+            }
+
+            t = {
+                kerning.shift(
+                    obj.id,
+                    content,
+                    getvalue(LAYER, "テキスト", "サイズ"),
+                    getvalue(LAYER, "テキスト", "フォント"),
+                    alignments[getvalue(LAYER, "テキスト", "文字揃え")],
+                    getvalue(LAYER, "テキスト", "B") ~= "0",
+                    getvalue(LAYER, "テキスト", "I") ~= "0"
+                ),
+            }
+            global[KEY_KERNING] = buffer:reset():encode(t):get()
         else
-            t = _G[KEY_KERNING]
+            t = buffer:set(global[KEY_KERNING]):decode()
         end
 
         if type(t) == "table" and #t == n then
@@ -138,7 +170,7 @@ do
         end
 
         if INDEX == NUM - 1 then
-            _G[KEY_KERNING] = nil
+            global[KEY_KERNING] = nil
         end
     end
 
@@ -155,9 +187,9 @@ do
                     t[#t + 1] = m[1]
                 end
             end
-            _G[KEY_REGEX] = t
+            global[KEY_REGEX] = buffer:reset():encode(t):get()
         else
-            t = _G[KEY_REGEX]
+            t = buffer:set(global[KEY_REGEX]):decode()
         end
 
         if type(t) == "table" and #t == n then
@@ -167,7 +199,7 @@ do
         end
 
         if INDEX == NUM - 1 then
-            _G[KEY_REGEX] = nil
+            global[KEY_REGEX] = nil
         end
     end
 

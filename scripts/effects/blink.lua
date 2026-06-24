@@ -42,7 +42,12 @@ do
     local utils = require("utilities")
     local lerp, copy_xform, stop = utils.lerp, utils.copy_xform, utils.stop
 
-    local text = obj.module("Text@${PROJECT_NAME}")
+    local buffer
+
+    do
+        buffer = require("string.buffer").new()
+    end
+
     local utf8 = obj.module("UTF8@${PROJECT_NAME}")
     local hash = obj.module("Hash@${PROJECT_NAME}")
     local hash4d = hash.hash4d
@@ -94,8 +99,7 @@ do
         return
     end
 
-    local frame = obj.getvalue("frame_s") + FPS * TIME
-    local handle = text.is_text(LAYER, frame)
+    local text = obj.getvalue(LAYER, "テキスト", "テキスト") --[[@as string | nil]]
 
     local i, n = INDEX, NUM
 
@@ -105,15 +109,15 @@ do
         if based_on >= 0 then
             local KEY_COUNT = "0fd2dd98-70e4-4c71-a1a5-042eecbfdbe0-" .. ID
 
-            if handle ~= nil then
+            if text ~= nil then
                 local c
                 if INDEX == 0 then
-                    content = text.content(handle):gsub("<.->", "")
+                    content = text:gsub("<.->", "")
 
                     c = utf8.count(content, true)
-                    _G[KEY_COUNT] = c
+                    global[KEY_COUNT] = tostring(c)
                 else
-                    c = _G[KEY_COUNT]
+                    c = tonumber(global[KEY_COUNT])
                 end
 
                 if type(c) == "number" then
@@ -126,12 +130,12 @@ do
                 end
 
                 if INDEX == NUM - 1 then
-                    _G[KEY_COUNT] = nil
+                    global[KEY_COUNT] = nil
                 end
             end
         end
 
-        if handle ~= nil and based_on > 0 then
+        if text ~= nil and based_on > 0 then
             local KEY_GROUP = "23ac879f-fa88-47fe-9047-98c62eb012d2-" .. ID
 
             local t
@@ -165,9 +169,9 @@ do
                     end
                 end
 
-                _G[KEY_GROUP] = t
+                global[KEY_GROUP] = buffer:reset():encode(t):get()
             else
-                t = _G[KEY_GROUP]
+                t = buffer:set(global[KEY_GROUP]):decode()
             end
 
             if type(t) == "table" and #t == n then
@@ -178,7 +182,7 @@ do
             end
 
             if INDEX == NUM - 1 then
-                _G[KEY_GROUP] = nil
+                global[KEY_GROUP] = nil
             end
         elseif based_on == -2 then
             i = 0
@@ -188,24 +192,68 @@ do
 
     if (TIME - (duration < 0.0 and obj.totaltime or 0.0)) / duration < 1.0 then
         if characters_pool ~= "" then
-            local props
-            if handle ~= nil then
-                props = { text.property(handle, frame) }
-            else
-                props = { max(obj.w, obj.h), 0.0, 0.0, 0.0, "", 0xffffff, 0, 0, 4, false, false }
-            end
+            local alignment
 
-            obj.setfont(
-                characters_font,
-                props[1] * characters_scale * 0.01,
-                props[8],
-                props[6],
-                props[7],
-                props[10],
-                props[11],
-                props[2],
-                props[3]
-            )
+            if text ~= nil then
+                local styles = {
+                    ["標準文字"] = 0,
+                    ["影付き文字"] = 1,
+                    ["影付き文字(薄)"] = 2,
+                    ["縁取り文字"] = 3,
+                    ["縁取り文字(細)"] = 4,
+                    ["縁取り文字(太)"] = 5,
+                    ["縁取り文字(角)"] = 6,
+                }
+
+                local alignments = {
+                    ["左寄せ[上]"] = 0,
+                    ["中央揃え[上]"] = 1,
+                    ["右寄せ[上]"] = 2,
+                    ["左寄せ[中]"] = 3,
+                    ["中央揃え[中]"] = 4,
+                    ["右寄せ[中]"] = 5,
+                    ["左寄せ[下]"] = 6,
+                    ["中央揃え[下]"] = 7,
+                    ["右寄せ[下]"] = 8,
+                    ["縦書 上寄[右]"] = 9,
+                    ["縦書 中央[右]"] = 10,
+                    ["縦書 下寄[右]"] = 11,
+                    ["縦書 上寄[中]"] = 12,
+                    ["縦書 中央[中]"] = 13,
+                    ["縦書 下寄[中]"] = 14,
+                    ["縦書 上寄[左]"] = 15,
+                    ["縦書 中央[左]"] = 16,
+                    ["縦書 下寄[左]"] = 17,
+                }
+
+                obj.setfont(
+                    characters_font,
+                    obj.getvalue(LAYER, "テキスト", "サイズ") * characters_scale * 0.01,
+                    styles[obj.getvalue(LAYER, "テキスト", "文字装飾")],
+                    obj.getvalue(LAYER, "テキスト", "文字色") --[[@as number]],
+                    obj.getvalue(LAYER, "テキスト", "影・縁色") --[[@as number]],
+                    obj.getvalue(LAYER, "テキスト", "B") ~= "0",
+                    obj.getvalue(LAYER, "テキスト", "I") ~= "0",
+                    obj.getvalue(LAYER, "テキスト", "字間") --[[@as number]],
+                    obj.getvalue(LAYER, "テキスト", "行間") --[[@as number]]
+                )
+
+                alignment = alignments[obj.getvalue(LAYER, "テキスト", "文字揃え")]
+            else
+                obj.setfont(
+                    characters_font,
+                    max(obj.w, obj.h) * characters_scale * 0.01,
+                    0,
+                    0xffffff,
+                    0x000000,
+                    false,
+                    false,
+                    0,
+                    0
+                )
+
+                alignment = 4
+            end
 
             local chars = utf8.split(characters_pool, true)
 
@@ -214,7 +262,7 @@ do
             local xform = {}
             copy_xform(xform, obj)
 
-            obj.load("text", chars[hx], 0.0, 0.0, props[9])
+            obj.load("text", chars[hx], 0.0, 0.0, alignment)
 
             copy_xform(obj, xform)
         end
