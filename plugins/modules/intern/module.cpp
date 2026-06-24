@@ -11,7 +11,7 @@ void
 init(HOST_APP_TABLE *host, LOG_HANDLE *logger) {
     hash::init(host, logger);
     island::init(host, logger);
-    text::init(host, logger);
+    // text::init(host, logger);
     toml::init(host, logger);
     vector::init(host, logger);
 }

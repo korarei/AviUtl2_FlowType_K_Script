@@ -70,8 +70,6 @@ do
         buffer = require("string.buffer").new()
     end
 
-    local text = obj.module("Text@${PROJECT_NAME}")
-
     local ID = obj.effect_id
     local KEY_COUNT = "8973f111-5db5-4890-907d-52539fe55570-" .. ID
 
@@ -87,15 +85,13 @@ do
 
     influence = influence * 0.01
 
-    local frame = getvalue("frame_s") + FPS * TIME
-
-    local handle = text.is_text(LAYER, frame)
-    if handle == nil then
+    local text = getvalue(LAYER, "テキスト", "テキスト") --[[@as string | nil]]
+    if text == nil then
         print("@error", "'テキスト' effect was not found in the source")
         return
     end
 
-    local content = INDEX == 0 and text.content(handle):gsub("<.->", "") or nil
+    local content = INDEX == 0 and text:gsub("<.->", "") or nil
 
     local i, n = INDEX, NUM
 
@@ -130,8 +126,38 @@ do
         if INDEX == 0 then
             local kerning = obj.module("Kerning@${PROJECT_NAME}")
 
-            local props = { text.property(handle, frame) }
-            t = { kerning.shift(obj.id, content, props[1], props[5], props[9], props[10], props[11]) }
+            local alignments = {
+                ["左寄せ[上]"] = 0,
+                ["中央揃え[上]"] = 1,
+                ["右寄せ[上]"] = 2,
+                ["左寄せ[中]"] = 3,
+                ["中央揃え[中]"] = 4,
+                ["右寄せ[中]"] = 5,
+                ["左寄せ[下]"] = 6,
+                ["中央揃え[下]"] = 7,
+                ["右寄せ[下]"] = 8,
+                ["縦書 上寄[右]"] = 9,
+                ["縦書 中央[右]"] = 10,
+                ["縦書 下寄[右]"] = 11,
+                ["縦書 上寄[中]"] = 12,
+                ["縦書 中央[中]"] = 13,
+                ["縦書 下寄[中]"] = 14,
+                ["縦書 上寄[左]"] = 15,
+                ["縦書 中央[左]"] = 16,
+                ["縦書 下寄[左]"] = 17,
+            }
+
+            t = {
+                kerning.shift(
+                    obj.id,
+                    content,
+                    getvalue(LAYER, "テキスト", "サイズ"),
+                    getvalue(LAYER, "テキスト", "フォント"),
+                    alignments[getvalue(LAYER, "テキスト", "文字揃え")],
+                    getvalue(LAYER, "テキスト", "B") ~= "0",
+                    getvalue(LAYER, "テキスト", "I") ~= "0"
+                ),
+            }
             global[KEY_KERNING] = buffer:reset():encode(t):get()
         else
             t = buffer:set(global[KEY_KERNING]):decode()

@@ -196,13 +196,11 @@ do
     local motion, mask
 
     do
-        local text = obj.module("Text@${PROJECT_NAME}")
         local utf8 = obj.module("UTF8@${PROJECT_NAME}")
 
         local CACHE_LUT = "cache:a09d04ba-6a95-4940-b8f4-41f9d7483817-" .. ID
 
-        local frame = getvalue("frame_s") + FPS * TIME
-        local handle = text.is_text(LAYER, frame)
+        local text = getvalue(LAYER, "テキスト", "テキスト") --[[@as string | nil]]
 
         if should_load_lut then
             local ok, e = pcall(function()
@@ -420,26 +418,66 @@ do
                 local alignment, chars
 
                 if blink_characters_pool ~= "" then
-                    local props
-                    if handle ~= nil then
-                        props = { text.property(handle, frame) }
+                    if text ~= nil then
+                        local styles = {
+                            ["標準文字"] = 0,
+                            ["影付き文字"] = 1,
+                            ["影付き文字(薄)"] = 2,
+                            ["縁取り文字"] = 3,
+                            ["縁取り文字(細)"] = 4,
+                            ["縁取り文字(太)"] = 5,
+                            ["縁取り文字(角)"] = 6,
+                        }
+
+                        local alignments = {
+                            ["左寄せ[上]"] = 0,
+                            ["中央揃え[上]"] = 1,
+                            ["右寄せ[上]"] = 2,
+                            ["左寄せ[中]"] = 3,
+                            ["中央揃え[中]"] = 4,
+                            ["右寄せ[中]"] = 5,
+                            ["左寄せ[下]"] = 6,
+                            ["中央揃え[下]"] = 7,
+                            ["右寄せ[下]"] = 8,
+                            ["縦書 上寄[右]"] = 9,
+                            ["縦書 中央[右]"] = 10,
+                            ["縦書 下寄[右]"] = 11,
+                            ["縦書 上寄[中]"] = 12,
+                            ["縦書 中央[中]"] = 13,
+                            ["縦書 下寄[中]"] = 14,
+                            ["縦書 上寄[左]"] = 15,
+                            ["縦書 中央[左]"] = 16,
+                            ["縦書 下寄[左]"] = 17,
+                        }
+
+                        obj.setfont(
+                            blink_characters_font,
+                            obj.getvalue(LAYER, "テキスト", "サイズ") * blink_characters_scale * 0.01,
+                            styles[obj.getvalue(LAYER, "テキスト", "文字装飾")],
+                            obj.getvalue(LAYER, "テキスト", "文字色") --[[@as number]],
+                            obj.getvalue(LAYER, "テキスト", "影・縁色") --[[@as number]],
+                            obj.getvalue(LAYER, "テキスト", "B") ~= "0",
+                            obj.getvalue(LAYER, "テキスト", "I") ~= "0",
+                            obj.getvalue(LAYER, "テキスト", "字間") --[[@as number]],
+                            obj.getvalue(LAYER, "テキスト", "行間") --[[@as number]]
+                        )
+
+                        alignment = alignments[obj.getvalue(LAYER, "テキスト", "文字揃え")]
                     else
-                        props = { max(obj.w, obj.h), 0.0, 0.0, 0.0, "", 0xffffff, 0, 0, 4, false, false }
+                        obj.setfont(
+                            blink_characters_font,
+                            max(obj.w, obj.h) * blink_characters_scale * 0.01,
+                            0,
+                            0xffffff,
+                            0x000000,
+                            false,
+                            false,
+                            0,
+                            0
+                        )
+
+                        alignment = 4
                     end
-
-                    obj.setfont(
-                        blink_characters_font,
-                        props[1] * blink_characters_scale * 0.01,
-                        props[8],
-                        props[6],
-                        props[7],
-                        props[10],
-                        props[11],
-                        props[2],
-                        props[3]
-                    )
-
-                    alignment = props[9]
 
                     chars = utf8.split(blink_characters_pool, true)
                 end
@@ -606,10 +644,10 @@ do
                 if motion_based_on >= 0 then
                     local KEY_COUNT = "58172aa6-e0d5-4503-aa68-984427e8f04f-" .. ID
 
-                    if handle ~= nil then
+                    if text ~= nil then
                         local c
                         if INDEX == 0 then
-                            content = text.content(handle):gsub("<.->", "")
+                            content = text:gsub("<.->", "")
 
                             c = utf8.count(content, true)
                             global[KEY_COUNT] = tostring(c)
@@ -632,7 +670,7 @@ do
                     end
                 end
 
-                if handle ~= nil and motion_based_on > 0 then
+                if text ~= nil and motion_based_on > 0 then
                     local KEY_GROUP = "a7d6bd98-24a1-480a-bf02-679a2c80c83d-" .. ID
 
                     local t
