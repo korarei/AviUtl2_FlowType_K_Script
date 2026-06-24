@@ -647,7 +647,7 @@ do
                     if text ~= nil then
                         local c
                         if INDEX == 0 then
-                            content = text:gsub("<.->", "")
+                            content = text:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("<.->", "")
 
                             c = utf8.count(content, true)
                             global[KEY_COUNT] = tostring(c)

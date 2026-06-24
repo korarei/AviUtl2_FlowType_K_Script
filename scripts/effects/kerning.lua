@@ -91,7 +91,7 @@ do
         return
     end
 
-    local content = INDEX == 0 and text:gsub("<.->", "") or nil
+    local content = INDEX == 0 and text:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("<.->", "") or nil
 
     local i, n = INDEX, NUM
 
