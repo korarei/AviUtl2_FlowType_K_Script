@@ -96,7 +96,7 @@ do
                     getvalue(LAYER, "テキスト", "行間") --[[@as number]]
                 )
 
-                size = { obj.load("text.layout", text) }
+                size = { obj.load("text.layout", text:gsub("\\\\", "\\"):gsub("\\n", "\n")) }
                 global[KEY_SIZE] = buffer:reset():encode(size):get()
             else
                 size = buffer:set(global[KEY_SIZE]):decode()
