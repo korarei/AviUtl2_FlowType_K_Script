@@ -9,7 +9,7 @@ namespace flow::module::text {
 void
 init(HOST_APP_TABLE *host, LOG_HANDLE *logger) {
     kerning::init(host, logger);
-    property::init(host, logger);
+    // property::init(host, logger);
     regex::init(host, logger);
     utf8::init(host, logger);
 }

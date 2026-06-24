@@ -55,6 +55,7 @@ Blink::Scale::Maximum=100.00
 Blink::Edge Detection::Intensity=100.00
 Blink::Edge Detection::Threshold=-100.00
 Blink::Characters::Pool=
+Blink::Characters::Font=Noto Sans JP Black
 Blink::Characters::Scale=100.00
 Tint.hide=1
 Tint::Source=Image
