@@ -111,9 +111,18 @@ FontCache::init(const std::filesystem::path &path) {
         builder->AddFontSet(system.Get());
 
     if (std::filesystem::exists(path) && std::filesystem::is_directory(path)) {
-        for (const auto &entry : std::filesystem::directory_iterator(path)) {
-            const auto &file = entry.path();
+        for (auto it = std::filesystem::recursive_directory_iterator(path);
+             it != std::filesystem::recursive_directory_iterator();
+             ++it) {
+            if (it.depth() >= 1 && it->is_directory())
+                it.disable_recursion_pending();
+
+            if (!it->is_regular_file())
+                continue;
+
+            const auto &file = it->path();
             const auto ext = file.extension();
+
             if (ext != L".ttf" && ext != L".otf" && ext != L".ttc" && ext != L".otc")
                 continue;
 
